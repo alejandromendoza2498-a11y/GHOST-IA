@@ -631,69 +631,127 @@ ESTADO ACTUAL DEL SISTEMA:
             const q = cmdSearch.toLowerCase();
             const filtered = COMMANDS_REF.filter(c=>
               (cmdCat==="TODOS"||c.cat===cmdCat) &&
-              (!q || c.cmd.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q))
+              (!q||c.cmd.toLowerCase().includes(q)||c.desc.toLowerCase().includes(q))
             );
-            const typeColor = t => t==="skill"?G.cyan:t==="workflow"?G.yellow:G.green;
-            const typeLabel = t => t==="skill"?"SKILL":t==="workflow"?"WORKFLOW":"BUILTIN";
+            const tc = t=>t==="skill"?G.cyan:t==="workflow"?G.yellow:G.green;
+            const tl = t=>t==="skill"?"SKILL":t==="workflow"?"FLOW":"SYS";
+            const builtins  = COMMANDS_REF.filter(c=>c.type==="builtin").length;
+            const skills    = COMMANDS_REF.filter(c=>c.type==="skill").length;
+            const workflows = COMMANDS_REF.filter(c=>c.type==="workflow").length;
             return (
-              <Panel title="REFERENCIA DE COMANDOS — CLAUDE CODE" icon="/">
-                {/* Barra de búsqueda y filtros */}
-                <div style={{ display:"flex",gap:10,marginBottom:16,flexWrap:"wrap",alignItems:"center" }}>
-                  <div style={{ display:"flex",alignItems:"center",gap:8,flex:"1 1 220px",border:`1px solid ${G.border}`,borderRadius:3,padding:"6px 10px",background:`${G.green}05` }}>
-                    <span style={{ color:G.green,fontSize:11 }}>🔍</span>
-                    <input
-                      value={cmdSearch}
-                      onChange={e=>setCmdSearch(e.target.value)}
-                      placeholder="Buscar comando o descripción..."
-                      style={{ flex:1,background:"transparent",border:"none",color:G.text,fontSize:11,caretColor:G.green }}
-                    />
-                    {cmdSearch&&<button onClick={()=>setCmdSearch("")} style={{ background:"none",border:"none",color:G.muted,cursor:"pointer",fontSize:12,padding:0 }}>✕</button>}
-                  </div>
-                  <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
-                    {CMD_CATS.map(cat=>(
-                      <button key={cat} onClick={()=>setCmdCat(cat)}
-                        style={{ padding:"4px 9px",border:`1px solid ${cmdCat===cat?G.green:G.border}`,borderRadius:2,background:cmdCat===cat?`${G.green}15`:"transparent",color:cmdCat===cat?G.green:G.muted,fontSize:8,letterSpacing:1,cursor:"pointer",transition:"all .2s",fontFamily:"monospace" }}>
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-                  <div style={{ fontSize:9,color:G.muted,letterSpacing:1,whiteSpace:"nowrap" }}>
-                    {filtered.length}/{COMMANDS_REF.length} CMDS
-                  </div>
-                </div>
+              <div style={{ display:"flex",flexDirection:"column",gap:14,height:"calc(100vh - 195px)" }}>
 
-                {/* Leyenda de tipos */}
-                <div style={{ display:"flex",gap:14,marginBottom:12 }}>
-                  {[["BUILTIN","builtin"],["SKILL","skill"],["WORKFLOW","workflow"]].map(([l,t])=>(
-                    <div key={t} style={{ display:"flex",alignItems:"center",gap:5 }}>
-                      <span style={{ width:7,height:7,borderRadius:1,background:typeColor(t),display:"inline-block",boxShadow:`0 0 4px ${typeColor(t)}` }} />
-                      <span style={{ fontSize:9,color:typeColor(t),letterSpacing:1 }}>{l}</span>
+                {/* ── CABECERA DE STATS ── */}
+                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10 }}>
+                  {[[builtins,"COMANDOS SYS",G.green,"◉"],[skills,"SKILLS",G.cyan,"◈"],[workflows,"WORKFLOWS",G.yellow,"▲"]].map(([n,l,c,ic])=>(
+                    <div key={l} style={{ padding:"12px 16px",background:G.panel,border:`1px solid ${c}30`,borderRadius:4,display:"flex",alignItems:"center",gap:14,boxShadow:`inset 0 0 20px ${c}08` }}>
+                      <div style={{ fontSize:28,fontFamily:"'Orbitron',monospace",color:c,fontWeight:900,textShadow:`0 0 16px ${c}`,lineHeight:1 }}>{n}</div>
+                      <div>
+                        <div style={{ fontSize:8,color:c,letterSpacing:3,marginBottom:2 }}>{ic} {l}</div>
+                        <div style={{ width:40,height:2,background:`${c}30`,borderRadius:1 }}><div style={{ width:`${(n/COMMANDS_REF.length*100)}%`,height:"100%",background:c,boxShadow:`0 0 6px ${c}` }} /></div>
+                      </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Tabla de comandos */}
-                <div style={{ overflowY:"auto",maxHeight:"calc(100vh - 360px)" }}>
-                  {filtered.length===0
-                    ? <div style={{ textAlign:"center",padding:"32px 0",color:G.muted,fontSize:11,letterSpacing:2 }}>// SIN RESULTADOS //</div>
-                    : filtered.map((c,i)=>(
-                      <div key={i} style={{ display:"grid",gridTemplateColumns:"260px 60px 80px 1fr",gap:12,alignItems:"start",padding:"10px 0",borderBottom:`1px solid ${G.border}10`,transition:"background .15s" }}
-                        onMouseEnter={e=>e.currentTarget.style.background=`${G.green}05`}
-                        onMouseLeave={e=>e.currentTarget.style.background="transparent"}
-                      >
-                        <code style={{ fontSize:11,color:G.green,fontFamily:"'Courier New',monospace",wordBreak:"break-all" }}>{c.cmd}</code>
-                        <span style={{ fontSize:8,padding:"2px 5px",background:`${typeColor(c.type)}18`,color:typeColor(c.type),borderRadius:2,border:`1px solid ${typeColor(c.type)}40`,letterSpacing:1,textAlign:"center",alignSelf:"center" }}>
-                          {typeLabel(c.type)}
-                        </span>
-                        <span style={{ fontSize:8,padding:"2px 5px",background:`${G.dim}50`,color:G.muted,borderRadius:2,border:`1px solid ${G.border}`,letterSpacing:1,textAlign:"center",alignSelf:"center" }}>
-                          {c.cat}
-                        </span>
-                        <span style={{ fontSize:11,color:G.text,lineHeight:1.6 }}>{c.desc}</span>
-                      </div>
-                    ))
-                  }
+                {/* ── CUERPO PRINCIPAL ── */}
+                <div style={{ display:"grid",gridTemplateColumns:"160px 1fr",gap:14,flex:1,minHeight:0 }}>
+
+                  {/* Sidebar de categorías */}
+                  <div style={{ background:G.panel,border:`1px solid ${G.border}`,borderRadius:4,overflow:"hidden",display:"flex",flexDirection:"column" }}>
+                    <div style={{ padding:"8px 12px",borderBottom:`1px solid ${G.border}`,fontSize:9,color:G.green,letterSpacing:3 }}>◈ CATEGORÍAS</div>
+                    <div style={{ overflowY:"auto",flex:1 }}>
+                      {CMD_CATS.map(cat=>{
+                        const cnt = cat==="TODOS"?COMMANDS_REF.length:COMMANDS_REF.filter(c=>c.cat===cat).length;
+                        const active = cmdCat===cat;
+                        return (
+                          <div key={cat} onClick={()=>setCmdCat(cat)} style={{ padding:"9px 12px",cursor:"pointer",background:active?`${G.green}12`:"transparent",borderLeft:`2px solid ${active?G.green:"transparent"}`,display:"flex",justifyContent:"space-between",alignItems:"center",transition:"all .15s" }}
+                            onMouseEnter={e=>{ if(!active) e.currentTarget.style.background=`${G.green}07`; }}
+                            onMouseLeave={e=>{ if(!active) e.currentTarget.style.background="transparent"; }}
+                          >
+                            <span style={{ fontSize:9,color:active?G.green:G.muted,letterSpacing:1 }}>{cat}</span>
+                            <span style={{ fontSize:8,color:active?G.green:G.border,background:active?`${G.green}20`:`${G.border}30`,padding:"1px 5px",borderRadius:8 }}>{cnt}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Panel de comandos */}
+                  <div style={{ background:G.panel,border:`1px solid ${G.border}`,borderRadius:4,display:"flex",flexDirection:"column",overflow:"hidden" }}>
+
+                    {/* Barra de búsqueda tipo terminal */}
+                    <div style={{ padding:"10px 14px",borderBottom:`1px solid ${G.border}`,display:"flex",alignItems:"center",gap:10,background:`${G.green}04` }}>
+                      <span style={{ color:G.green,fontSize:12,fontFamily:"'Orbitron',monospace",fontWeight:900 }}>GHOST://&gt;</span>
+                      <input
+                        value={cmdSearch}
+                        onChange={e=>setCmdSearch(e.target.value)}
+                        placeholder="buscar comando..."
+                        style={{ flex:1,background:"transparent",border:"none",color:G.green,fontSize:12,caretColor:G.green,fontFamily:"'Courier New',monospace" }}
+                      />
+                      {cmdSearch
+                        ? <button onClick={()=>setCmdSearch("")} style={{ background:"none",border:`1px solid ${G.muted}40`,borderRadius:2,color:G.muted,cursor:"pointer",fontSize:10,padding:"2px 7px",fontFamily:"monospace" }}>CLR</button>
+                        : <span style={{ fontSize:9,color:G.muted,letterSpacing:1,animation:"blink 1.4s infinite" }}>█</span>
+                      }
+                      <span style={{ fontSize:9,color:G.muted,letterSpacing:1,whiteSpace:"nowrap" }}>{filtered.length} / {COMMANDS_REF.length}</span>
+                    </div>
+
+                    {/* Cabecera de columnas */}
+                    <div style={{ display:"grid",gridTemplateColumns:"42px 200px 55px 1fr",gap:10,padding:"6px 14px",borderBottom:`1px solid ${G.border}`,background:`${G.green}03` }}>
+                      {["#","COMANDO","TIPO","DESCRIPCIÓN"].map(h=>(
+                        <span key={h} style={{ fontSize:8,color:G.muted,letterSpacing:2 }}>{h}</span>
+                      ))}
+                    </div>
+
+                    {/* Filas de comandos */}
+                    <div style={{ overflowY:"auto",flex:1 }}>
+                      {filtered.length===0
+                        ? (
+                          <div style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:10,color:G.muted }}>
+                            <div style={{ fontSize:28,opacity:.3 }}>/</div>
+                            <div style={{ fontSize:10,letterSpacing:3 }}>// SIN RESULTADOS //</div>
+                            <div style={{ fontSize:9,color:G.border }}>Intenta con otro término</div>
+                          </div>
+                        )
+                        : filtered.map((c,i)=>(
+                          <div key={i}
+                            style={{ display:"grid",gridTemplateColumns:"42px 200px 55px 1fr",gap:10,padding:"9px 14px",borderBottom:`1px solid ${G.border}08`,alignItems:"start",cursor:"default",transition:"background .12s" }}
+                            onMouseEnter={e=>{
+                              e.currentTarget.style.background=`${tc(c.type)}08`;
+                              e.currentTarget.style.borderLeft=`2px solid ${tc(c.type)}60`;
+                            }}
+                            onMouseLeave={e=>{
+                              e.currentTarget.style.background="transparent";
+                              e.currentTarget.style.borderLeft="2px solid transparent";
+                            }}
+                          >
+                            <span style={{ fontSize:9,color:G.border,letterSpacing:1,paddingTop:2 }}>{String(i+1).padStart(2,"0")}</span>
+                            <code style={{ fontSize:11,color:G.green,fontFamily:"'Courier New',monospace",wordBreak:"break-all",textShadow:`0 0 8px ${G.green}40` }}>{c.cmd}</code>
+                            <div style={{ alignSelf:"start",paddingTop:1 }}>
+                              <span style={{ fontSize:7,padding:"2px 6px",background:`${tc(c.type)}18`,color:tc(c.type),borderRadius:2,border:`1px solid ${tc(c.type)}50`,letterSpacing:1,boxShadow:`0 0 6px ${tc(c.type)}20` }}>
+                                {tl(c.type)}
+                              </span>
+                            </div>
+                            <span style={{ fontSize:11,color:G.text,lineHeight:1.7,opacity:.85 }}>{c.desc}</span>
+                          </div>
+                        ))
+                      }
+                    </div>
+
+                    {/* Pie del panel */}
+                    <div style={{ padding:"6px 14px",borderTop:`1px solid ${G.border}`,display:"flex",gap:18,alignItems:"center",background:`${G.green}03` }}>
+                      {[["◉ SYS",G.green],["◈ SKILL",G.cyan],["▲ FLOW",G.yellow]].map(([l,c])=>(
+                        <div key={l} style={{ display:"flex",alignItems:"center",gap:5 }}>
+                          <span style={{ width:6,height:6,background:c,borderRadius:1,display:"inline-block",boxShadow:`0 0 5px ${c}` }} />
+                          <span style={{ fontSize:8,color:c,letterSpacing:1 }}>{l}</span>
+                        </div>
+                      ))}
+                      <div style={{ flex:1 }} />
+                      <span style={{ fontSize:8,color:G.muted,letterSpacing:1 }}>CLAUDE CODE — REFERENCIA v2</span>
+                    </div>
+                  </div>
                 </div>
-              </Panel>
+              </div>
             );
           })()}
 
