@@ -175,10 +175,30 @@ export default function GhostAI() {
   const [selArmor,   setSelArmor]   = useState(ARMORS0[0]);
   const [threats,    setThreats]    = useState(THREATS0);
   const [vitals,     setVitals]     = useState({ hr:72, o2:98, temp:36.7, bp:"118/76", stress:22 });
+  const [crypto,     setCrypto]     = useState(null);
+  const [forex,      setForex]      = useState(null);
+  const [mktLoading, setMktLoading] = useState(false);
+  const [mktUpdate,  setMktUpdate]  = useState(null);
   const [clock,      setClock]      = useState(new Date());
   const [toast,      setToast]      = useState(null);
   const chatEl  = useRef(null);
   const inputEl = useRef(null);
+
+  // mercados — carga inicial y refresco cada 60s
+  const fetchMarkets = async () => {
+    setMktLoading(true);
+    try {
+      const [cryptoRes, forexRes] = await Promise.all([
+        fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,cardano&vs_currencies=usd&include_24hr_change=true&include_market_cap=true"),
+        fetch("https://api.frankfurter.app/latest?from=USD&to=EUR,MXN,GBP,JPY,BRL"),
+      ]);
+      if (cryptoRes.ok) setCrypto(await cryptoRes.json());
+      if (forexRes.ok)  setForex(await forexRes.json());
+      setMktUpdate(new Date());
+    } catch(_) {}
+    setMktLoading(false);
+  };
+  useEffect(()=>{ fetchMarkets(); const t=setInterval(fetchMarkets,60000); return()=>clearInterval(t); },[]);
 
   // reloj
   useEffect(()=>{ const t=setInterval(()=>setClock(new Date()),1000); return()=>clearInterval(t); },[]);
@@ -294,6 +314,7 @@ ESTADO ACTUAL DEL SISTEMA:
     { id:"threats",  label:"AMENAZAS",   icon:"⚠" },
     { id:"vitals",   label:"CONSTANTES", icon:"♥" },
     { id:"cmds",     label:"COMANDOS",   icon:"/" },
+    { id:"mercados", label:"MERCADOS",   icon:"◎" },
   ];
 
   return (
@@ -748,6 +769,153 @@ ESTADO ACTUAL DEL SISTEMA:
                       ))}
                       <div style={{ flex:1 }} />
                       <span style={{ fontSize:8,color:G.muted,letterSpacing:1 }}>CLAUDE CODE — REFERENCIA v2</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ── TAB: MERCADOS ── */}
+          {tab==="mercados"&&(()=>{
+            const COINS = [
+              { id:"bitcoin",  label:"BITCOIN",  sym:"BTC", icon:"₿" },
+              { id:"ethereum", label:"ETHEREUM", sym:"ETH", icon:"Ξ" },
+              { id:"solana",   label:"SOLANA",   sym:"SOL", icon:"◎" },
+              { id:"ripple",   label:"XRP",      sym:"XRP", icon:"✕" },
+              { id:"cardano",  label:"CARDANO",  sym:"ADA", icon:"₳" },
+            ];
+            const PAIRS = [
+              { key:"MXN", label:"USD/MXN", flag:"🇲🇽" },
+              { key:"EUR", label:"USD/EUR", flag:"🇪🇺" },
+              { key:"GBP", label:"USD/GBP", flag:"🇬🇧" },
+              { key:"JPY", label:"USD/JPY", flag:"🇯🇵" },
+              { key:"BRL", label:"USD/BRL", flag:"🇧🇷" },
+            ];
+            const chgColor = v => !v ? G.muted : v>0 ? G.green : G.red;
+            const chgSign  = v => !v ? "" : v>0 ? "▲" : "▼";
+            const fmt = (n,d=2) => n==null?"—":n.toLocaleString("es-MX",{minimumFractionDigits:d,maximumFractionDigits:d});
+            return (
+              <div style={{ display:"flex",flexDirection:"column",gap:14,height:"calc(100vh - 195px)" }}>
+
+                {/* ── CABECERA ── */}
+                <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 16px",background:G.panel,border:`1px solid ${G.border}`,borderRadius:4 }}>
+                  <div style={{ display:"flex",alignItems:"center",gap:12 }}>
+                    <div style={{ fontFamily:"'Orbitron',monospace",fontSize:14,fontWeight:900,color:G.cyan,letterSpacing:4,textShadow:`0 0 16px ${G.cyan}` }}>◎ MAIA MARKETS</div>
+                    <div style={{ fontSize:9,color:G.muted,letterSpacing:2 }}>MULTI-AGENT INVESTMENT ANALYSIS</div>
+                  </div>
+                  <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+                    {mktLoading && <div style={{ fontSize:9,color:G.cyan,letterSpacing:2,animation:"blink 1s infinite" }}>● ACTUALIZANDO...</div>}
+                    {mktUpdate  && <div style={{ fontSize:9,color:G.muted,letterSpacing:1 }}>Última actualización: {mktUpdate.toLocaleTimeString("es-MX",{hour12:false})}</div>}
+                    <button onClick={fetchMarkets} disabled={mktLoading}
+                      style={{ padding:"5px 12px",background:"transparent",border:`1px solid ${G.cyan}50`,borderRadius:3,color:G.cyan,fontSize:9,letterSpacing:2,cursor:"pointer",fontFamily:"monospace",opacity:mktLoading?.4:1 }}>
+                      ↺ REFRESH
+                    </button>
+                  </div>
+                </div>
+
+                {/* ── CUERPO ── */}
+                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,flex:1,minHeight:0 }}>
+
+                  {/* CRYPTO */}
+                  <div style={{ background:G.panel,border:`1px solid ${G.border}`,borderRadius:4,display:"flex",flexDirection:"column",overflow:"hidden" }}>
+                    <div style={{ padding:"8px 14px",borderBottom:`1px solid ${G.border}`,display:"flex",alignItems:"center",gap:8,background:`${G.cyan}06` }}>
+                      <span style={{ fontSize:10,color:G.cyan,letterSpacing:3,fontFamily:"monospace",fontWeight:700 }}>₿ CRIPTOMONEDAS</span>
+                      <div style={{ flex:1 }} />
+                      <span style={{ fontSize:8,color:G.muted }}>vía CoinGecko</span>
+                    </div>
+                    <div style={{ flex:1,overflowY:"auto" }}>
+                      {!crypto
+                        ? <div style={{ display:"flex",alignItems:"center",justifyContent:"center",height:"100%",color:G.muted,fontSize:10,letterSpacing:2,animation:"blink 1s infinite" }}>CONECTANDO...</div>
+                        : COINS.map(c=>{
+                          const d = crypto[c.id];
+                          const chg = d?.usd_24h_change;
+                          const mc  = d?.usd_market_cap;
+                          return (
+                            <div key={c.id} style={{ display:"grid",gridTemplateColumns:"36px 1fr auto",gap:10,padding:"12px 14px",borderBottom:`1px solid ${G.border}08`,alignItems:"center",transition:"background .12s" }}
+                              onMouseEnter={e=>e.currentTarget.style.background=`${G.cyan}06`}
+                              onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+                            >
+                              <div style={{ width:34,height:34,borderRadius:4,border:`1px solid ${G.cyan}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:G.cyan,background:`${G.cyan}10`,boxShadow:`0 0 8px ${G.cyan}20` }}>
+                                {c.icon}
+                              </div>
+                              <div>
+                                <div style={{ fontSize:10,color:G.text,fontWeight:700,letterSpacing:1,marginBottom:2 }}>{c.sym} <span style={{ fontSize:8,color:G.muted,fontWeight:400 }}>{c.label}</span></div>
+                                {mc && <div style={{ fontSize:8,color:G.muted }}>Cap: ${(mc/1e9).toFixed(1)}B</div>}
+                              </div>
+                              <div style={{ textAlign:"right" }}>
+                                <div style={{ fontSize:13,color:G.green,fontWeight:700,fontFamily:"'Orbitron',monospace",textShadow:`0 0 8px ${G.green}60` }}>
+                                  ${fmt(d?.usd)}
+                                </div>
+                                <div style={{ fontSize:9,color:chgColor(chg),marginTop:2 }}>
+                                  {chgSign(chg)} {chg!=null?Math.abs(chg).toFixed(2):"—"}%
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      }
+                    </div>
+                  </div>
+
+                  {/* FOREX + INFO MAIA */}
+                  <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
+
+                    {/* Forex */}
+                    <div style={{ background:G.panel,border:`1px solid ${G.border}`,borderRadius:4,display:"flex",flexDirection:"column",overflow:"hidden",flex:1 }}>
+                      <div style={{ padding:"8px 14px",borderBottom:`1px solid ${G.border}`,display:"flex",alignItems:"center",gap:8,background:`${G.yellow}06` }}>
+                        <span style={{ fontSize:10,color:G.yellow,letterSpacing:3,fontFamily:"monospace",fontWeight:700 }}>◉ FOREX</span>
+                        <div style={{ flex:1 }} />
+                        <span style={{ fontSize:8,color:G.muted }}>vía Frankfurter</span>
+                      </div>
+                      <div style={{ flex:1,overflowY:"auto" }}>
+                        {!forex
+                          ? <div style={{ display:"flex",alignItems:"center",justifyContent:"center",height:"100%",color:G.muted,fontSize:10,letterSpacing:2,animation:"blink 1s infinite" }}>CONECTANDO...</div>
+                          : PAIRS.map(p=>{
+                            const rate = forex.rates?.[p.key];
+                            return (
+                              <div key={p.key} style={{ display:"flex",alignItems:"center",gap:12,padding:"11px 14px",borderBottom:`1px solid ${G.border}08`,transition:"background .12s" }}
+                                onMouseEnter={e=>e.currentTarget.style.background=`${G.yellow}06`}
+                                onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+                              >
+                                <span style={{ fontSize:18 }}>{p.flag}</span>
+                                <div style={{ flex:1 }}>
+                                  <div style={{ fontSize:10,color:G.text,fontWeight:700,letterSpacing:1 }}>{p.label}</div>
+                                  <div style={{ fontSize:8,color:G.muted }}>1 USD =</div>
+                                </div>
+                                <div style={{ fontSize:14,color:G.yellow,fontWeight:700,fontFamily:"'Orbitron',monospace",textShadow:`0 0 8px ${G.yellow}60` }}>
+                                  {fmt(rate,4)}
+                                </div>
+                              </div>
+                            );
+                          })
+                        }
+                      </div>
+                    </div>
+
+                    {/* Banner MAIA */}
+                    <div style={{ background:G.panel,border:`1px solid ${G.cyan}30`,borderRadius:4,padding:"16px",boxShadow:`0 0 20px ${G.cyan}10` }}>
+                      <div style={{ display:"flex",gap:10,marginBottom:10,alignItems:"flex-start" }}>
+                        <div style={{ width:36,height:36,border:`2px solid ${G.cyan}`,borderRadius:4,display:"flex",alignItems:"center",justifyContent:"center",color:G.cyan,fontSize:16,flexShrink:0,animation:"glow 3s infinite" }}>◎</div>
+                        <div>
+                          <div style={{ fontSize:11,color:G.cyan,fontWeight:700,letterSpacing:2,marginBottom:3 }}>MAIA — ANÁLISIS PROFUNDO</div>
+                          <div style={{ fontSize:10,color:G.muted,lineHeight:1.6 }}>5 agentes de IA analizan crypto, acciones, forex y materias primas en paralelo según tu perfil de riesgo.</div>
+                        </div>
+                      </div>
+                      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:12 }}>
+                        {[["4","Analistas sectoriales",G.cyan],["1","Estratega IA",G.green],["∞","Activos cubiertos",G.yellow]].map(([n,l,c])=>(
+                          <div key={l} style={{ padding:"8px",background:`${c}08`,border:`1px solid ${c}25`,borderRadius:3,textAlign:"center" }}>
+                            <div style={{ fontSize:18,color:c,fontWeight:700,fontFamily:"'Orbitron',monospace" }}>{n}</div>
+                            <div style={{ fontSize:7,color:G.muted,letterSpacing:1,marginTop:2 }}>{l}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ fontSize:9,color:G.muted,letterSpacing:1,padding:"8px",background:`${G.green}05`,borderRadius:3,border:`1px solid ${G.border}`,marginBottom:10 }}>
+                        💬 En Claude Code escribe: <span style={{ color:G.green }}>"Analiza los mercados"</span> o <span style={{ color:G.green }}>"Run tododeia"</span>
+                      </div>
+                      <div style={{ fontSize:8,color:G.border,letterSpacing:1,textAlign:"center" }}>
+                        ⚠ Análisis educativo — no constituye asesoría financiera · by @soyenriquerocha
+                      </div>
                     </div>
                   </div>
                 </div>
