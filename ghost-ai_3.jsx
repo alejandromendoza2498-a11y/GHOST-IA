@@ -179,6 +179,14 @@ export default function GhostAI() {
   const [forex,      setForex]      = useState(null);
   const [mktLoading, setMktLoading] = useState(false);
   const [mktUpdate,  setMktUpdate]  = useState(null);
+  const [geminiKey,  setGeminiKey]  = useState("");
+  const [geminiKeyInput, setGeminiKeyInput] = useState("");
+  const [imgPrompt,  setImgPrompt]  = useState("");
+  const [imgHistory, setImgHistory] = useState([]);
+  const [imgResult,  setImgResult]  = useState(null);
+  const [imgBusy,    setImgBusy]    = useState(false);
+  const [imgError,   setImgError]   = useState(null);
+  const imgChatEl = useRef(null);
   const [clock,      setClock]      = useState(new Date());
   const [toast,      setToast]      = useState(null);
   const chatEl  = useRef(null);
@@ -204,8 +212,10 @@ export default function GhostAI() {
   useEffect(()=>{ const t=setInterval(()=>setClock(new Date()),1000); return()=>clearInterval(t); },[]);
   // voces
   useEffect(()=>{ window.speechSynthesis?.getVoices(); },[]);
-  // scroll chat
+  // scroll chat principal
   useEffect(()=>{ if(chatEl.current) chatEl.current.scrollTop = chatEl.current.scrollHeight; },[msgs,busy]);
+  // scroll chat imágenes
+  useEffect(()=>{ if(imgChatEl.current) imgChatEl.current.scrollTop = imgChatEl.current.scrollHeight; },[imgHistory,imgBusy]);
   // constantes vitales — fluctuación simulada
   useEffect(()=>{
     const t = setInterval(()=>{
@@ -221,6 +231,64 @@ export default function GhostAI() {
   },[]);
 
   const toast_ = (msg,color=G.green)=>{ setToast({msg,color}); setTimeout(()=>setToast(null),4000); };
+
+  // ── GENERACIÓN DE IMÁGENES — GEMINI NANO-BANANA ──────────────────────────────
+  const GEM_PURPLE = "#A78BFA";
+  const generateImage = async () => {
+    const prompt = imgPrompt.trim();
+    if (!prompt || imgBusy || !geminiKey) return;
+    setImgPrompt("");
+    setImgError(null);
+    const userMsg = { role:"user", text:prompt, image:null };
+    const next = [...imgHistory, userMsg];
+    setImgHistory(next);
+    setImgBusy(true);
+
+    // Construir historial para la API (multi-turno)
+    const contents = next.map(m => ({
+      role: m.role === "user" ? "user" : "model",
+      parts: m.image
+        ? [{ text: m.text||"" }, { inlineData:{ mimeType:"image/png", data:m.image } }]
+        : [{ text: m.text||"" }],
+    }));
+
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify({
+            contents,
+            generationConfig: { responseModalities:["IMAGE","TEXT"], temperature:1 },
+          }),
+        }
+      );
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+
+      const parts = data.candidates?.[0]?.content?.parts || [];
+      let imgData = null;
+      let replyText = "";
+      for (const p of parts) {
+        if (p.inlineData?.mimeType?.startsWith("image")) imgData = p.inlineData.data;
+        if (p.text) replyText += p.text;
+      }
+
+      if (imgData) setImgResult(imgData);
+      setImgHistory(h => [...h, { role:"model", text:replyText||"Imagen generada.", image:imgData }]);
+      toast_("◎ IMAGEN GENERADA", GEM_PURPLE);
+    } catch(err) {
+      setImgError(err.message || "Error de generación");
+      setImgHistory(h => [...h, { role:"model", text:`⚠ Error: ${err.message}`, image:null }]);
+    }
+    setImgBusy(false);
+  };
+
+  const resetImgChat = () => {
+    setImgHistory([]); setImgResult(null); setImgError(null); setImgPrompt("");
+    toast_("↺ SESIÓN DE IMÁGENES REINICIADA", GEM_PURPLE);
+  };
 
   // detectar comandos en la respuesta de GHOST
   const parseReply = (txt) => {
@@ -315,6 +383,7 @@ ESTADO ACTUAL DEL SISTEMA:
     { id:"vitals",   label:"CONSTANTES", icon:"♥" },
     { id:"cmds",     label:"COMANDOS",   icon:"/" },
     { id:"mercados", label:"MERCADOS",   icon:"◎" },
+    { id:"imagen",   label:"IMÁGENES",   icon:"✦" },
   ];
 
   return (
@@ -916,6 +985,179 @@ ESTADO ACTUAL DEL SISTEMA:
                       <div style={{ fontSize:8,color:G.border,letterSpacing:1,textAlign:"center" }}>
                         ⚠ Análisis educativo — no constituye asesoría financiera · by @soyenriquerocha
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ── TAB: IMÁGENES (GEMINI NANO-BANANA) ── */}
+          {tab==="imagen"&&(()=>{
+            const GP = "#A78BFA";
+            const EXAMPLES = [
+              "Un samurái cyberpunk en Monterrey de noche",
+              "G.H.O.S.T. — sistema de IA en una sala de servidores verde neón",
+              "Un peleador de UFC rodeado de luz y gloria",
+              "Ciudad futurista con armaduras de hierro volando",
+            ];
+            return (
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 420px", gap:14, height:"calc(100vh - 195px)" }}>
+
+                {/* ── Panel principal: chat + imagen ── */}
+                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+
+                  {/* Historial del chat */}
+                  <div ref={imgChatEl} style={{ flex:1, overflowY:"auto", display:"flex", flexDirection:"column", gap:14, background:G.panel, border:`1px solid ${G.border}`, borderRadius:4, padding:14, minHeight:0 }}>
+                    {imgHistory.length===0 && (
+                      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:16, opacity:.6 }}>
+                        <div style={{ fontSize:48, filter:`drop-shadow(0 0 20px ${GP})` }}>✦</div>
+                        <div style={{ fontSize:12, color:GP, letterSpacing:3, textAlign:"center" }}>NANO-BANANA LISTO</div>
+                        <div style={{ fontSize:10, color:G.muted, textAlign:"center", maxWidth:360, lineHeight:1.8 }}>
+                          Describe lo que quieres generar. Puedo crear imágenes, editarlas en conversación multi-turno y aplicar estilos complejos.
+                        </div>
+                      </div>
+                    )}
+                    {imgHistory.map((m,i)=>(
+                      <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", flexDirection:m.role==="user"?"row-reverse":"row" }}>
+                        <div style={{ width:30, height:30, borderRadius:4, flexShrink:0, border:`1px solid ${m.role==="model"?GP:G.dim}`, display:"flex", alignItems:"center", justifyContent:"center", background:m.role==="model"?`${GP}15`:`${G.dim}30`, fontSize:14, color:m.role==="model"?GP:G.muted }}>
+                          {m.role==="model"?"✦":"J"}
+                        </div>
+                        <div style={{ maxWidth:"75%", display:"flex", flexDirection:"column", gap:8 }}>
+                          {m.role==="model"&&<div style={{ fontSize:9, color:GP, letterSpacing:2 }}>NANO-BANANA · GEMINI</div>}
+                          {m.text&&<div style={{ padding:"10px 13px", borderRadius:4, background:m.role==="model"?`${GP}08`:`${G.dim}20`, border:`1px solid ${m.role==="model"?GP+"25":G.dim}`, fontSize:12, color:G.text, lineHeight:1.7 }}>{m.text}</div>}
+                          {m.image&&(
+                            <div style={{ position:"relative", borderRadius:6, overflow:"hidden", border:`1px solid ${GP}40`, boxShadow:`0 0 20px ${GP}20` }}>
+                              <img src={`data:image/png;base64,${m.image}`} style={{ width:"100%", display:"block", borderRadius:4 }} alt="Imagen generada" />
+                              <a href={`data:image/png;base64,${m.image}`} download="ghost-imagen.png"
+                                style={{ position:"absolute", bottom:8, right:8, padding:"5px 10px", background:`${GP}cc`, borderRadius:3, fontSize:9, color:"#fff", textDecoration:"none", letterSpacing:1 }}>
+                                ↓ DESCARGAR
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {imgBusy&&(
+                      <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                        <div style={{ width:30, height:30, borderRadius:4, border:`1px solid ${GP}`, display:"flex", alignItems:"center", justifyContent:"center", background:`${GP}15`, fontSize:14, color:GP }}>✦</div>
+                        <div style={{ padding:"10px 14px", borderRadius:4, background:`${GP}08`, border:`1px solid ${GP}25` }}>
+                          <div style={{ fontSize:9, color:GP, letterSpacing:2, marginBottom:6 }}>GENERANDO IMAGEN...</div>
+                          <div style={{ display:"flex", gap:5 }}>
+                            {[0,1,2].map(i=><div key={i} style={{ width:6, height:6, borderRadius:"50%", background:GP, animation:`pulse 1s ${i*.2}s infinite` }}/>)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {imgError&&<div style={{ padding:"8px 12px", background:`${G.red}12`, border:`1px solid ${G.red}40`, borderRadius:4, fontSize:11, color:G.red }}>⚠ {imgError}</div>}
+                  </div>
+
+                  {/* Input */}
+                  <div style={{ background:G.panel, border:`1px solid ${GP}40`, borderRadius:4, padding:"12px 14px" }}>
+                    <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                      <span style={{ color:GP, fontSize:14, flexShrink:0 }}>✦</span>
+                      <input
+                        value={imgPrompt}
+                        onChange={e=>setImgPrompt(e.target.value)}
+                        onKeyDown={e=>{ if(e.key==="Enter"&&!imgBusy&&imgPrompt.trim()&&geminiKey) generateImage(); }}
+                        placeholder={!geminiKey?"Configura tu API key →":"Describe la imagen que quieres generar..."}
+                        disabled={imgBusy||!geminiKey}
+                        style={{ flex:1, background:"transparent", border:"none", color:imgBusy||!geminiKey?G.muted:GP, fontSize:12, caretColor:GP }}
+                      />
+                      <button onClick={generateImage} disabled={imgBusy||!imgPrompt.trim()||!geminiKey}
+                        style={{ padding:"7px 16px", background:imgBusy||!imgPrompt.trim()||!geminiKey?G.green3:GP, border:"none", borderRadius:3, color:"#000", fontSize:10, fontWeight:700, cursor:imgBusy||!imgPrompt.trim()||!geminiKey?"not-allowed":"pointer", letterSpacing:2, opacity:imgBusy?.5:1, transition:"all .2s" }}>
+                        {imgBusy?"...":"GENERAR"}
+                      </button>
+                      <button onClick={resetImgChat} title="Nueva sesión"
+                        style={{ padding:"7px 10px", background:"transparent", border:`1px solid ${G.muted}40`, borderRadius:3, color:G.muted, fontSize:13, cursor:"pointer" }}>↺</button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Panel lateral: config + ejemplos + última imagen grande ── */}
+                <div style={{ display:"flex", flexDirection:"column", gap:12, overflow:"hidden" }}>
+
+                  {/* API Key */}
+                  <Panel title="GEMINI API KEY" icon="✦" accent={GP}>
+                    {geminiKey
+                      ? (
+                        <div>
+                          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                            <span style={{ width:7, height:7, borderRadius:"50%", background:GP, display:"inline-block", boxShadow:`0 0 6px ${GP}`, animation:"pulse 1.5s infinite" }}/>
+                            <span style={{ fontSize:10, color:GP, letterSpacing:1 }}>CONECTADO</span>
+                          </div>
+                          <div style={{ fontSize:9, color:G.muted, marginBottom:8 }}>
+                            {`...${geminiKey.slice(-8)}`}
+                          </div>
+                          <GBtn color={G.red} small onClick={()=>{ setGeminiKey(""); setGeminiKeyInput(""); resetImgChat(); }}>DESCONECTAR</GBtn>
+                        </div>
+                      )
+                      : (
+                        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                          <div style={{ fontSize:9, color:G.muted, lineHeight:1.6 }}>
+                            Necesitas una API key gratuita de Google AI Studio para usar Nano-Banana.
+                          </div>
+                          <input
+                            value={geminiKeyInput}
+                            onChange={e=>setGeminiKeyInput(e.target.value)}
+                            onKeyDown={e=>{ if(e.key==="Enter"&&geminiKeyInput.trim()) setGeminiKey(geminiKeyInput.trim()); }}
+                            placeholder="AIza..."
+                            style={{ background:`${GP}08`, border:`1px solid ${GP}30`, borderRadius:3, padding:"7px 10px", color:GP, fontSize:11, fontFamily:"monospace" }}
+                          />
+                          <GBtn color={GP} small onClick={()=>geminiKeyInput.trim()&&setGeminiKey(geminiKeyInput.trim())}>CONECTAR</GBtn>
+                          <div style={{ fontSize:8, color:G.border, textAlign:"center", marginTop:2 }}>
+                            aistudio.google.com/apikey
+                          </div>
+                        </div>
+                      )
+                    }
+                  </Panel>
+
+                  {/* Imagen actual grande */}
+                  {imgResult
+                    ? (
+                      <Panel title="ÚLTIMA IMAGEN" icon="◈" accent={GP} style={{ flex:1, overflow:"hidden" }}>
+                        <div style={{ position:"relative", borderRadius:4, overflow:"hidden" }}>
+                          <img src={`data:image/png;base64,${imgResult}`} style={{ width:"100%", display:"block", borderRadius:4 }} alt="Resultado" />
+                          <div style={{ display:"flex", gap:8, marginTop:8 }}>
+                            <a href={`data:image/png;base64,${imgResult}`} download="ghost-imagen.png"
+                              style={{ flex:1, padding:"7px", background:`${GP}20`, border:`1px solid ${GP}50`, borderRadius:3, fontSize:9, color:GP, textDecoration:"none", textAlign:"center", letterSpacing:2 }}>
+                              ↓ DESCARGAR
+                            </a>
+                            <GBtn color={GP} small onClick={()=>{ setImgPrompt("Edita la imagen: "); }}>✏ EDITAR</GBtn>
+                          </div>
+                        </div>
+                      </Panel>
+                    )
+                    : (
+                      /* Prompts de ejemplo */
+                      <Panel title="EJEMPLOS RÁPIDOS" icon="◈" accent={GP}>
+                        <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+                          {EXAMPLES.map((ex,i)=>(
+                            <div key={i} onClick={()=>{ if(geminiKey){ setImgPrompt(ex); } }}
+                              style={{ padding:"9px 11px", border:`1px solid ${GP}25`, borderRadius:3, fontSize:10, color:G.muted, cursor:geminiKey?"pointer":"default", background:"transparent", transition:"all .15s", lineHeight:1.5 }}
+                              onMouseEnter={e=>{ if(geminiKey){ e.currentTarget.style.background=`${GP}10`; e.currentTarget.style.color=GP; }}}
+                              onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; e.currentTarget.style.color=G.muted; }}>
+                              ✦ {ex}
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ marginTop:10, padding:"8px", background:`${GP}06`, borderRadius:3, border:`1px solid ${GP}20` }}>
+                          <div style={{ fontSize:8, color:GP, letterSpacing:2, marginBottom:4 }}>MULTI-TURNO</div>
+                          <div style={{ fontSize:9, color:G.muted, lineHeight:1.7 }}>
+                            Después de generar una imagen puedes pedirme que la edite: "Hazla más oscura", "Agrega lluvia", "Cambia el color del traje"...
+                          </div>
+                        </div>
+                      </Panel>
+                    )
+                  }
+
+                  {/* Badge Nano-Banana */}
+                  <div style={{ padding:"10px 14px", background:G.panel, border:`1px solid ${GP}25`, borderRadius:4, display:"flex", alignItems:"center", gap:10 }}>
+                    <div style={{ fontSize:22 }}>🍌</div>
+                    <div>
+                      <div style={{ fontSize:9, color:GP, letterSpacing:2 }}>NANO-BANANA 2</div>
+                      <div style={{ fontSize:8, color:G.muted }}>Gemini · Google AI · Generación de imágenes</div>
                     </div>
                   </div>
                 </div>
