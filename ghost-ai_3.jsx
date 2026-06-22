@@ -186,7 +186,13 @@ export default function GhostAI() {
   const [imgResult,  setImgResult]  = useState(null);
   const [imgBusy,    setImgBusy]    = useState(false);
   const [imgError,   setImgError]   = useState(null);
-  const imgChatEl = useRef(null);
+  const imgChatEl  = useRef(null);
+  const rbgFileRef = useRef(null);
+  const [rbgKey,     setRbgKey]     = useState("");
+  const [rbgKeyInput,setRbgKeyInput]= useState("");
+  const [rbgResult,  setRbgResult]  = useState(null);
+  const [rbgBusy,    setRbgBusy]    = useState(false);
+  const [rbgError,   setRbgError]   = useState(null);
   const [clock,      setClock]      = useState(new Date());
   const [toast,      setToast]      = useState(null);
   const chatEl  = useRef(null);
@@ -283,6 +289,46 @@ export default function GhostAI() {
       setImgHistory(h => [...h, { role:"model", text:`⚠ Error: ${err.message}`, image:null }]);
     }
     setImgBusy(false);
+  };
+
+  // ── REMOVE.BG ────────────────────────────────────────────────────────────────
+  const RBG_COLOR = "#F97316";
+
+  const removeBackground = async (blob) => {
+    setRbgBusy(true); setRbgError(null); setRbgResult(null);
+    const formData = new FormData();
+    formData.append("size", "auto");
+    formData.append("image_file", blob);
+    try {
+      const res = await fetch("https://api.remove.bg/v1.0/removebg", {
+        method: "POST",
+        headers: { "X-Api-Key": rbgKey },
+        body: formData,
+      });
+      if (res.ok) {
+        const buf = await res.arrayBuffer();
+        const url = URL.createObjectURL(new Blob([buf], { type:"image/png" }));
+        setRbgResult(url);
+        toast_("✂ FONDO ELIMINADO", RBG_COLOR);
+      } else {
+        throw new Error(`${res.status}: ${res.statusText}`);
+      }
+    } catch(e) { setRbgError(e.message); }
+    setRbgBusy(false);
+  };
+
+  const rbgFromFile = (e) => {
+    const file = e.target.files?.[0];
+    if (file) removeBackground(file);
+    e.target.value = "";
+  };
+
+  const rbgFromGenerated = () => {
+    if (!imgResult) return;
+    const byteStr = atob(imgResult);
+    const arr = new Uint8Array(byteStr.length);
+    for (let i=0; i<byteStr.length; i++) arr[i] = byteStr.charCodeAt(i);
+    removeBackground(new Blob([arr], { type:"image/png" }));
   };
 
   const resetImgChat = () => {
@@ -1204,6 +1250,81 @@ ESTADO ACTUAL DEL SISTEMA:
                       </Panel>
                     )
                   }
+
+                  {/* ── REMOVE.BG ── */}
+                  <Panel title="QUITAR FONDO — REMOVE.BG" icon="✂" accent={RBG_COLOR}>
+                    <input ref={rbgFileRef} type="file" accept="image/*" onChange={rbgFromFile} style={{ display:"none" }}/>
+
+                    {!rbgKey ? (
+                      /* Setup key */
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        <div style={{ fontSize:9, color:G.muted, lineHeight:1.6 }}>
+                          Elimina el fondo de cualquier imagen. API key gratuita en <span style={{ color:RBG_COLOR }}>remove.bg/api</span>
+                        </div>
+                        <input
+                          value={rbgKeyInput}
+                          onChange={e=>setRbgKeyInput(e.target.value)}
+                          onKeyDown={e=>{ if(e.key==="Enter"&&rbgKeyInput.trim()) setRbgKey(rbgKeyInput.trim()); }}
+                          placeholder="tu-api-key-remove-bg"
+                          style={{ background:`${RBG_COLOR}08`, border:`1px solid ${RBG_COLOR}30`, borderRadius:3, padding:"7px 10px", color:RBG_COLOR, fontSize:11, fontFamily:"monospace" }}
+                        />
+                        <button onClick={()=>rbgKeyInput.trim()&&setRbgKey(rbgKeyInput.trim())}
+                          disabled={!rbgKeyInput.trim()}
+                          style={{ padding:"8px", background:rbgKeyInput.trim()?RBG_COLOR:`${RBG_COLOR}30`, border:"none", borderRadius:3, color:"#000", fontSize:10, fontWeight:700, cursor:rbgKeyInput.trim()?"pointer":"not-allowed", letterSpacing:2 }}>
+                          ✂ CONECTAR REMOVE.BG
+                        </button>
+                      </div>
+                    ) : (
+                      /* Herramientas activas */
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
+                          <span style={{ width:6, height:6, borderRadius:"50%", background:RBG_COLOR, display:"inline-block", animation:"pulse 1.5s infinite" }}/>
+                          <span style={{ fontSize:9, color:RBG_COLOR, letterSpacing:1 }}>CONECTADO</span>
+                          <div style={{ flex:1 }}/>
+                          <button onClick={()=>{ setRbgKey(""); setRbgKeyInput(""); setRbgResult(null); }}
+                            style={{ background:"none", border:"none", color:G.muted, cursor:"pointer", fontSize:10 }}>✕</button>
+                        </div>
+
+                        {/* Botones de acción */}
+                        <div style={{ display:"flex", gap:6 }}>
+                          <button onClick={()=>rbgFileRef.current?.click()} disabled={rbgBusy}
+                            style={{ flex:1, padding:"8px 6px", background:`${RBG_COLOR}15`, border:`1px solid ${RBG_COLOR}50`, borderRadius:3, color:RBG_COLOR, fontSize:9, letterSpacing:1, cursor:"pointer", fontFamily:"monospace" }}>
+                            📁 SUBIR FOTO
+                          </button>
+                          {imgResult && (
+                            <button onClick={rbgFromGenerated} disabled={rbgBusy}
+                              style={{ flex:1, padding:"8px 6px", background:`${GP}15`, border:`1px solid ${GP}50`, borderRadius:3, color:GP, fontSize:9, letterSpacing:1, cursor:"pointer", fontFamily:"monospace" }}>
+                              ✦ USA GENERADA
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Estado / resultado */}
+                        {rbgBusy && (
+                          <div style={{ display:"flex", alignItems:"center", gap:8, padding:"8px", background:`${RBG_COLOR}08`, borderRadius:3, border:`1px solid ${RBG_COLOR}25` }}>
+                            <div style={{ display:"flex", gap:4 }}>
+                              {[0,1,2].map(i=><div key={i} style={{ width:5, height:5, borderRadius:"50%", background:RBG_COLOR, animation:`pulse 1s ${i*.2}s infinite` }}/>)}
+                            </div>
+                            <span style={{ fontSize:9, color:RBG_COLOR }}>PROCESANDO...</span>
+                          </div>
+                        )}
+                        {rbgError && (
+                          <div style={{ fontSize:9, color:G.red, padding:"6px 8px", background:`${G.red}10`, borderRadius:3 }}>⚠ {rbgError}</div>
+                        )}
+                        {rbgResult && (
+                          <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                            <div style={{ borderRadius:4, overflow:"hidden", border:`1px solid ${RBG_COLOR}40`, background:"repeating-conic-gradient(#1a1a1a 0% 25%, #222 0% 50%) 0 0 / 12px 12px" }}>
+                              <img src={rbgResult} style={{ width:"100%", display:"block" }} alt="Sin fondo"/>
+                            </div>
+                            <a href={rbgResult} download="sin-fondo.png"
+                              style={{ display:"block", padding:"7px", background:`${RBG_COLOR}20`, border:`1px solid ${RBG_COLOR}50`, borderRadius:3, fontSize:9, color:RBG_COLOR, textDecoration:"none", textAlign:"center", letterSpacing:2 }}>
+                              ↓ DESCARGAR PNG
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Panel>
 
                   {/* Badge Nano-Banana */}
                   <div style={{ padding:"10px 14px", background:G.panel, border:`1px solid ${GP}25`, borderRadius:4, display:"flex", alignItems:"center", gap:10 }}>
