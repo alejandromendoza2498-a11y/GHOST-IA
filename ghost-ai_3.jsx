@@ -1077,40 +1077,93 @@ ESTADO ACTUAL DEL SISTEMA:
                 {/* ── Panel lateral: config + ejemplos + última imagen grande ── */}
                 <div style={{ display:"flex", flexDirection:"column", gap:12, overflow:"hidden" }}>
 
-                  {/* API Key */}
-                  <Panel title="GEMINI API KEY" icon="✦" accent={GP}>
-                    {geminiKey
-                      ? (
-                        <div>
-                          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-                            <span style={{ width:7, height:7, borderRadius:"50%", background:GP, display:"inline-block", boxShadow:`0 0 6px ${GP}`, animation:"pulse 1.5s infinite" }}/>
-                            <span style={{ fontSize:10, color:GP, letterSpacing:1 }}>CONECTADO</span>
+                  {/* API Key + Guía de setup */}
+                  <Panel title={geminiKey?"GEMINI · CONECTADO":"CONFIGURACIÓN — NANO-BANANA"} icon="✦" accent={GP}>
+                    {geminiKey ? (
+                      <div>
+                        {/* Estado conectado */}
+                        <div style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 10px", background:`${GP}10`, border:`1px solid ${GP}30`, borderRadius:4, marginBottom:10 }}>
+                          <span style={{ width:8, height:8, borderRadius:"50%", background:GP, display:"inline-block", boxShadow:`0 0 8px ${GP}`, animation:"pulse 1.5s infinite", flexShrink:0 }}/>
+                          <div>
+                            <div style={{ fontSize:10, color:GP, letterSpacing:1 }}>NANO-BANANA ACTIVO</div>
+                            <div style={{ fontSize:8, color:G.muted }}>Key: AIza...{geminiKey.slice(-6)}</div>
                           </div>
-                          <div style={{ fontSize:9, color:G.muted, marginBottom:8 }}>
-                            {`...${geminiKey.slice(-8)}`}
-                          </div>
-                          <GBtn color={G.red} small onClick={()=>{ setGeminiKey(""); setGeminiKeyInput(""); resetImgChat(); }}>DESCONECTAR</GBtn>
                         </div>
-                      )
-                      : (
-                        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                          <div style={{ fontSize:9, color:G.muted, lineHeight:1.6 }}>
-                            Necesitas una API key gratuita de Google AI Studio para usar Nano-Banana.
+                        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                          {[
+                            ["◉","Generación de imágenes",true],
+                            ["◉","Edición multi-turno",true],
+                            ["◉","Gemini 2.0 Flash",true],
+                          ].map(([ic,label,ok])=>(
+                            <div key={label} style={{ display:"flex", alignItems:"center", gap:6, fontSize:9, color:ok?GP:G.muted }}>
+                              <span style={{ fontSize:8 }}>{ic}</span>{label}
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ marginTop:12 }}>
+                          <GBtn color={G.red} small onClick={()=>{ setGeminiKey(""); setGeminiKeyInput(""); resetImgChat(); }}>✕ DESCONECTAR</GBtn>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+
+                        {/* Pasos */}
+                        {[
+                          { n:"01", title:"Abre Google AI Studio", desc:"Ve a aistudio.google.com/apikey", link:"https://aistudio.google.com/apikey", tag:"ABRIR →" },
+                          { n:"02", title:"Inicia sesión", desc:"Con tu cuenta de Google" },
+                          { n:"03", title:"Crea la API key", desc:'Clic en "Create API key" → "in new project"' },
+                          { n:"04", title:"Copia la key", desc:'Empieza con "AIzaSy..." (39 caracteres)' },
+                          { n:"05", title:"Pégala aquí abajo", desc:"Presiona CONECTAR y listo 🎨" },
+                        ].map(s=>(
+                          <div key={s.n} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                            <div style={{ width:22, height:22, borderRadius:3, background:`${GP}20`, border:`1px solid ${GP}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:8, color:GP, fontWeight:700, flexShrink:0, letterSpacing:0 }}>
+                              {s.n}
+                            </div>
+                            <div style={{ flex:1 }}>
+                              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
+                                <span style={{ fontSize:10, color:G.text, fontWeight:700 }}>{s.title}</span>
+                                {s.link && (
+                                  <a href={s.link} target="_blank" rel="noreferrer"
+                                    style={{ fontSize:8, color:GP, background:`${GP}15`, border:`1px solid ${GP}40`, borderRadius:2, padding:"1px 6px", textDecoration:"none", letterSpacing:1 }}>
+                                    {s.tag}
+                                  </a>
+                                )}
+                              </div>
+                              <div style={{ fontSize:9, color:G.muted, lineHeight:1.5 }}>{s.desc}</div>
+                            </div>
                           </div>
+                        ))}
+
+                        {/* Separador */}
+                        <div style={{ height:1, background:`${GP}20`, margin:"2px 0" }}/>
+
+                        {/* Input key */}
+                        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                          <div style={{ fontSize:8, color:GP, letterSpacing:2 }}>PASO 05 — PEGA TU KEY</div>
                           <input
                             value={geminiKeyInput}
                             onChange={e=>setGeminiKeyInput(e.target.value)}
-                            onKeyDown={e=>{ if(e.key==="Enter"&&geminiKeyInput.trim()) setGeminiKey(geminiKeyInput.trim()); }}
-                            placeholder="AIza..."
-                            style={{ background:`${GP}08`, border:`1px solid ${GP}30`, borderRadius:3, padding:"7px 10px", color:GP, fontSize:11, fontFamily:"monospace" }}
+                            onKeyDown={e=>{ if(e.key==="Enter"&&geminiKeyInput.startsWith("AIza")) setGeminiKey(geminiKeyInput.trim()); }}
+                            placeholder="AIzaSy..."
+                            style={{ background:`${GP}08`, border:`1px solid ${geminiKeyInput.startsWith("AIza")?GP:GP+"30"}`, borderRadius:3, padding:"8px 10px", color:GP, fontSize:11, fontFamily:"monospace", letterSpacing:1, transition:"border .2s" }}
                           />
-                          <GBtn color={GP} small onClick={()=>geminiKeyInput.trim()&&setGeminiKey(geminiKeyInput.trim())}>CONECTAR</GBtn>
-                          <div style={{ fontSize:8, color:G.border, textAlign:"center", marginTop:2 }}>
-                            aistudio.google.com/apikey
-                          </div>
+                          {geminiKeyInput && !geminiKeyInput.startsWith("AIza") && (
+                            <div style={{ fontSize:8, color:G.red, letterSpacing:1 }}>⚠ La key debe empezar con "AIza"</div>
+                          )}
+                          <button onClick={()=>geminiKeyInput.startsWith("AIza")&&setGeminiKey(geminiKeyInput.trim())}
+                            disabled={!geminiKeyInput.startsWith("AIza")}
+                            style={{ padding:"9px", background:geminiKeyInput.startsWith("AIza")?GP:`${GP}30`, border:"none", borderRadius:3, color:"#000", fontSize:10, fontWeight:700, cursor:geminiKeyInput.startsWith("AIza")?"pointer":"not-allowed", letterSpacing:2, transition:"all .2s" }}>
+                            ✦ CONECTAR CON GEMINI
+                          </button>
                         </div>
-                      )
-                    }
+
+                        {/* Nota de seguridad */}
+                        <div style={{ fontSize:8, color:G.border, lineHeight:1.6, padding:"6px 8px", background:`${G.green}04`, borderRadius:3, border:`1px solid ${G.border}` }}>
+                          🔒 La key se guarda solo en tu navegador. Nunca la compartas en chats ni código.
+                        </div>
+
+                      </div>
+                    )}
                   </Panel>
 
                   {/* Imagen actual grande */}
