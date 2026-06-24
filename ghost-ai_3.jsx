@@ -85,6 +85,35 @@ const COMMANDS_REF = [
 
 const CMD_CATS = ["TODOS", ...Array.from(new Set(COMMANDS_REF.map(c=>c.cat)))];
 
+// ── UI/UX Pro Max — estilos de diseño para generación de imágenes ─────────────
+const UIPRO_STYLES = [
+  { n:"Glassmorphism",         p:"frosted glass effect, backdrop blur 10-20px, translucent overlays rgba 10-30% opacity, vibrant background colors, subtle white borders, light source reflection, layered depth, modern cards" },
+  { n:"Cyberpunk UI",          p:"neon colors on dark #0D0D0D, terminal HUD aesthetic, glitch effects, scanlines overlay, matrix green accents, monospace fonts, angular shapes, dystopian tech, neon glow text borders" },
+  { n:"Retro-Futurism",        p:"neon blue pink cyan deep black, 80s aesthetic, CRT scanlines, glitch effects, neon glow, monospace fonts, geometric patterns, cyberpunk vaporwave, animated glitch" },
+  { n:"HUD / Sci-Fi FUI",      p:"futuristic heads up display, thin 1px lines, neon cyan blue on black, technical markers, decorative brackets, data visualization, monospaced tech fonts, glowing elements, transparency, holographic" },
+  { n:"Aurora UI",             p:"northern lights gradient mesh, smooth color blends, complementary pairs blue-orange purple-yellow, electric blue cyan, flowing animated background, iridescent effects, vibrant gradients" },
+  { n:"Vaporwave",             p:"sunset gradients pink cyan purple, 80s-90s nostalgia, glitch effects, Greek statue imagery, palm trees, grid patterns, neon glow, retro-futuristic, dreamy atmosphere, synthwave" },
+  { n:"Y2K Aesthetic",         p:"neon pink cyan chrome metallic textures, bubblegum gradients, glossy buttons, iridescent effects, 2000s futurism, star sparkle decorations, bubble shapes, tech-optimistic, shiny silver" },
+  { n:"Claymorphism",          p:"playful toy-like 3D, chunky bubbly aesthetic, rounded edges 16-24px, thick borders 3-4px, double shadows inner outer, pastel colors, smooth animations, children's creative feel" },
+  { n:"3D & Hyperrealism",     p:"immersive 3D realistic textures, complex shadows, realistic lighting, parallax 3-5 layers, physics-based motion, skeuomorphic tactile detail, depth, photorealistic materials" },
+  { n:"Dark Mode OLED",        p:"deep black #000000, dark grey #121212, midnight blue accents, minimal glow, vibrant neon accents green blue gold purple, high contrast text, OLED optimized, eye comfort" },
+  { n:"Liquid Glass",          p:"premium liquid glass morphing shapes, flowing animations, chromatic aberration, iridescent gradients, smooth transitions, SVG morphing, dynamic blur, fluid premium feel" },
+  { n:"Neubrutalism",          p:"high contrast hard black borders 3px, bright pop colors yellow red blue, no blur, sharp corners, bold typography, hard shadows offset 4px 4px, raw aesthetic functional" },
+  { n:"Bento Box Grid",        p:"modular cards varied sizes 1x1 2x1 2x2, Apple-style aesthetic, rounded corners 16-24px, soft shadows, clean hierarchy, asymmetric grid, neutral backgrounds hover effects" },
+  { n:"Memphis Design",        p:"bold geometric shapes triangles squiggles circles, bright clashing colors, 80s postmodern, playful patterns, dotted textures, asymmetric layouts, decorative elements" },
+  { n:"Biomimetic Organic",    p:"cellular fluid shapes, breathing animations, generative patterns, bioluminescent colors, physics-based movement, nature algorithms, life-like elements, flowing gradients" },
+  { n:"Gradient Mesh Aurora",  p:"multi-color mesh gradients, flowing color transitions, aurora northern lights, iridescent overlays, holographic shimmer, prismatic effects, smooth color morphing, rainbow spectrum" },
+  { n:"Chromatic Aberration",  p:"RGB split glitch aesthetic, color channel offset R G B, retro tech feel, VHS error look, lens distortion, scan lines, noise overlay, analog imperfection" },
+  { n:"Vintage Analog Film",   p:"film grain overlay, faded desaturated colors, warm sepia tones, light leaks, VHS tracking effect, polaroid frame, analog warmth, nostalgic photography feel" },
+  { n:"Spatial UI VisionOS",   p:"frosted glass panels, depth layers, translucent backgrounds 15-30% opacity, vibrant colors for active states, floating windows, immersive spatial feel, Apple Vision Pro style" },
+  { n:"Gen Z Chaos",           p:"clashing bright colors, sticker overlays, collage aesthetic, raw unpolished, mixed media, ironic elements, loud typography, internet culture, maximalist, colorful chaos" },
+  { n:"AI-Native UI",          p:"minimal chrome, conversational layout, streaming text area, typing indicators, context cards, subtle AI purple #6366F1, clean input, response bubbles, futuristic clean" },
+  { n:"Pixel Art",             p:"8-bit 16-bit aesthetic, pixelated fonts, sharp edges image-rendering pixelated, limited color palette NES, blocky UI elements, retro gaming feel, classic video game" },
+  { n:"Minimalism Swiss",      p:"white space geometric layouts, sans-serif fonts, high contrast, grid-based structure, essential elements only, no shadows gradients, clarity functionality, clean" },
+  { n:"Brutalism",             p:"raw unpolished stark aesthetic, pure primary colors red blue yellow, black white, no smooth transitions, sharp corners, bold large typography, visible grid lines, anti-design" },
+  { n:"Nature Distilled",      p:"muted earthy terracotta sand olive, organic materials, warm tones, handmade warmth, natural textures, artisan quality, sustainable vibe, soft gradients, botanical" },
+];
+
 // ── Datos iniciales ──────────────────────────────────────────────────────────
 const ARMORS0 = [
   { id:"MK-I",     name:"MARK I",     status:"ACTIVE",  power:98,  shield:87,  weapons:100, location:"MANSIÓN PRINCIPAL" },
@@ -193,6 +222,7 @@ export default function GhostAI() {
   const [rbgResult,  setRbgResult]  = useState(null);
   const [rbgBusy,    setRbgBusy]    = useState(false);
   const [rbgError,   setRbgError]   = useState(null);
+  const [uiSearch,   setUiSearch]   = useState("");
   const [clock,      setClock]      = useState(new Date());
   const [toast,      setToast]      = useState(null);
   const chatEl  = useRef(null);
@@ -1028,6 +1058,12 @@ ESTADO ACTUAL DEL SISTEMA:
                       <div style={{ fontSize:9,color:G.muted,letterSpacing:1,padding:"8px",background:`${G.green}05`,borderRadius:3,border:`1px solid ${G.border}`,marginBottom:10 }}>
                         💬 En Claude Code escribe: <span style={{ color:G.green }}>"Analiza los mercados"</span> o <span style={{ color:G.green }}>"Run tododeia"</span>
                       </div>
+                      <a href="http://localhost:3420" target="_blank" rel="noreferrer"
+                        style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"10px",background:`${G.cyan}15`,border:`1px solid ${G.cyan}50`,borderRadius:4,textDecoration:"none",cursor:"pointer",marginBottom:4 }}>
+                        <span style={{ fontSize:14,color:G.cyan }}>◎</span>
+                        <span style={{ fontSize:10,color:G.cyan,letterSpacing:2,fontWeight:700 }}>VER REPORTE MAIA COMPLETO</span>
+                        <span style={{ fontSize:9,color:G.muted }}>localhost:3420 ↗</span>
+                      </a>
                       <div style={{ fontSize:8,color:G.border,letterSpacing:1,textAlign:"center" }}>
                         ⚠ Análisis educativo — no constituye asesoría financiera · by @soyenriquerocha
                       </div>
@@ -1324,6 +1360,45 @@ ESTADO ACTUAL DEL SISTEMA:
                         )}
                       </div>
                     )}
+                  </Panel>
+
+                  {/* ── UI/UX PRO MAX — ESTILOS DE DISEÑO ── */}
+                  <Panel title="ESTILOS DE DISEÑO — UI/UX PRO" icon="🎨" accent="#E879F9">
+                    {/* Buscador */}
+                    <input
+                      value={uiSearch}
+                      onChange={e=>setUiSearch(e.target.value)}
+                      placeholder="Buscar estilo: cyberpunk, glass, retro..."
+                      style={{ width:"100%", padding:"7px 10px", background:"#E879F908", border:"1px solid #E879F930", borderRadius:3, color:"#E879F9", fontSize:10, fontFamily:"monospace", marginBottom:8, outline:"none", boxSizing:"border-box" }}
+                    />
+                    <div style={{ fontSize:8, color:G.muted, letterSpacing:1, marginBottom:8 }}>
+                      Toca un estilo → se agrega al prompt de imagen
+                    </div>
+                    {/* Lista de estilos */}
+                    <div style={{ display:"flex", flexDirection:"column", gap:5, maxHeight:220, overflowY:"auto" }}>
+                      {UIPRO_STYLES
+                        .filter(s => !uiSearch.trim() || s.n.toLowerCase().includes(uiSearch.toLowerCase()) || s.p.toLowerCase().includes(uiSearch.toLowerCase()))
+                        .map((s,i)=>(
+                          <div key={i}
+                            onClick={()=>{ setImgPrompt(prev => (prev?prev+", ":"")+s.p); setUiSearch(""); }}
+                            title={s.p}
+                            style={{ padding:"7px 10px", border:"1px solid #E879F920", borderRadius:3, cursor:"pointer", background:"transparent", transition:"all .15s", display:"flex", flexDirection:"column", gap:2 }}
+                            onMouseEnter={e=>{ e.currentTarget.style.background="#E879F910"; e.currentTarget.style.borderColor="#E879F960"; }}
+                            onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; e.currentTarget.style.borderColor="#E879F920"; }}>
+                            <span style={{ fontSize:10, color:"#E879F9", fontWeight:700, letterSpacing:1 }}>🎨 {s.n}</span>
+                            <span style={{ fontSize:8, color:G.muted, lineHeight:1.5, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{s.p.slice(0,70)}...</span>
+                          </div>
+                        ))
+                      }
+                    </div>
+                    {/* Badge UI/UX Pro */}
+                    <div style={{ marginTop:8, padding:"6px 8px", background:"#E879F908", borderRadius:3, border:"1px solid #E879F920", display:"flex", alignItems:"center", gap:6 }}>
+                      <span style={{ fontSize:12 }}>✦</span>
+                      <div>
+                        <div style={{ fontSize:8, color:"#E879F9", letterSpacing:2 }}>UI/UX PRO MAX v2.6.3</div>
+                        <div style={{ fontSize:7, color:G.muted }}>67 estilos · 96 paletas · 57 tipografías · by nextlevelbuilder</div>
+                      </div>
+                    </div>
                   </Panel>
 
                   {/* Badge Nano-Banana */}
