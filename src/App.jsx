@@ -142,6 +142,9 @@ export default function GhostAI() {
   const [pers,       setPers]       = useState("sarcastico");
   const [voice,      setVoice]      = useState(false);
   const [showPers,   setShowPers]   = useState(false);
+  const [apiKey,     setApiKey]     = useState(()=>localStorage.getItem("ghost_api_key")||"");
+  const [keyInput,   setKeyInput]   = useState("");
+  const [showKey,    setShowKey]    = useState(false);
   const [armors,     setArmors]     = useState(ARMORS0);
   const [selArmor,   setSelArmor]   = useState(ARMORS0[0]);
   const [threats,    setThreats]    = useState(THREATS0);
@@ -215,10 +218,31 @@ export default function GhostAI() {
     setTimeout(()=>inputEl.current?.focus(),100);
   };
 
+  const saveApiKey = () => {
+    const k = keyInput.trim();
+    if (!k) return;
+    localStorage.setItem("ghost_api_key", k);
+    setApiKey(k);
+    setKeyInput("");
+    setShowKey(false);
+    toast_("🔑 API KEY GUARDADA",G.cyan);
+  };
+
+  const clearApiKey = () => {
+    localStorage.removeItem("ghost_api_key");
+    setApiKey("");
+    toast_("🔑 API KEY ELIMINADA",G.yellow);
+  };
+
   // ── ENVIAR MENSAJE ──────────────────────────────────────────────────────────
   const send = async () => {
     const text = input.trim();
     if (!text || busy) return;
+    if (!apiKey) {
+      toast_("🔑 CONFIGURA TU API KEY PRIMERO",G.yellow);
+      setShowKey(true);
+      return;
+    }
     setInput("");
     const next = [...msgs, { role:"user", text }];
     setMsgs(next);
@@ -265,6 +289,7 @@ Satélites: 12 en órbita · Nodos internet: ∞`;
             "Content-Type":"application/json",
             "anthropic-version":"2023-06-01",
             "anthropic-dangerous-direct-browser-access":"true",
+            "x-api-key": apiKey,
           },
           body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, system, tools:TOOLS, messages:hist }),
         });
@@ -388,6 +413,11 @@ Satélites: 12 en órbita · Nodos internet: ∞`;
             <button onClick={()=>setShowPers(p=>!p)} style={{ padding:"6px 12px",border:`1px solid ${G.cyan}50`,borderRadius:3,background:showPers?`${G.cyan}15`:"transparent",color:G.cyan,fontSize:9,letterSpacing:2,cursor:"pointer",transition:"all .2s" }}>
               {P.icon} {P.label}
             </button>
+
+            {/* Botón API Key */}
+            <button onClick={()=>setShowKey(k=>!k)} style={{ padding:"6px 12px",border:`1px solid ${apiKey?G.green:G.red}50`,borderRadius:3,background:showKey?`${G.green}15`:"transparent",color:apiKey?G.green:G.red,fontSize:9,letterSpacing:2,cursor:"pointer",transition:"all .2s" }}>
+              🔑 {apiKey?"API KEY OK":"SIN API KEY"}
+            </button>
           </div>
 
           {/* Reloj */}
@@ -407,6 +437,27 @@ Satélites: 12 en órbita · Nodos internet: ∞`;
                 <div style={{ fontSize:10,color:pers===k?G.cyan:G.text,fontWeight:700,letterSpacing:2,marginBottom:4 }}>{p.label}</div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Panel de API Key */}
+        {showKey && (
+          <div style={{ background:G.panel,borderBottom:`1px solid ${G.border}`,padding:"14px 20px",animation:"slideDown .2s ease",zIndex:99,position:"relative" }}>
+            <div style={{ fontSize:9,color:G.muted,letterSpacing:2,marginBottom:8 }}>
+              TU API KEY DE ANTHROPIC SE GUARDA SOLO EN ESTE NAVEGADOR (localStorage) — NUNCA SE ENVÍA A NINGÚN SERVIDOR SALVO api.anthropic.com
+            </div>
+            <div style={{ display:"flex",gap:8,alignItems:"center" }}>
+              <input
+                type="password"
+                value={keyInput}
+                onChange={e=>setKeyInput(e.target.value)}
+                onKeyDown={e=>{ if(e.key==="Enter"&&keyInput.trim()) saveApiKey(); }}
+                placeholder="sk-ant-..."
+                style={{ flex:1,padding:"8px 10px",background:G.bg,border:`1px solid ${G.border}`,borderRadius:3,color:G.green,fontSize:12,caretColor:G.green }}
+              />
+              <GBtn onClick={saveApiKey} small>GUARDAR</GBtn>
+              {apiKey&&<GBtn onClick={clearApiKey} color={G.red} small>BORRAR</GBtn>}
+            </div>
           </div>
         )}
 
