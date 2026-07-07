@@ -16,6 +16,75 @@ const PERSONALITIES = {
   amigable:  { label:"AMIGABLE",   icon:"🤝", prompt:"Eres cálido, cercano y alentador. Tratas al Jefe como a un amigo de confianza. Siempre positivo pero honesto." },
 };
 
+// ── Referencia de Comandos ────────────────────────────────────────────────────
+const COMMANDS_REF = [
+  { cmd:"/add-dir <ruta>",        type:"builtin", cat:"SESIÓN",    desc:"Agregar directorio de trabajo para acceso a archivos en la sesión actual." },
+  { cmd:"/agents",                type:"builtin", cat:"AGENTES",   desc:"Administrar configuraciones de subagentes." },
+  { cmd:"/autofix-pr [prompt]",   type:"builtin", cat:"PR",        desc:"Generar sesión remota que observe la PR e impulse correcciones cuando CI falla o hay comentarios." },
+  { cmd:"/background [prompt]",   type:"builtin", cat:"SESIÓN",    desc:"Desconectar la sesión para ejecutarse como agente de fondo. Alias: /bg" },
+  { cmd:"/batch <instrucción>",   type:"skill",   cat:"CÓDIGO",    desc:"Orquestar cambios a gran escala en paralelo: descompone trabajo en 5–30 unidades independientes." },
+  { cmd:"/branch [nombre]",       type:"builtin", cat:"SESIÓN",    desc:"Crear rama de la conversación actual. Alias: /fork" },
+  { cmd:"/btw <pregunta>",        type:"builtin", cat:"CHAT",      desc:"Hacer una pregunta rápida sin agregar al historial de conversación." },
+  { cmd:"/clear [nombre]",        type:"builtin", cat:"SESIÓN",    desc:"Iniciar nueva conversación con contexto vacío. Alias: /reset, /new" },
+  { cmd:"/code-review [nivel]",   type:"skill",   cat:"CÓDIGO",    desc:"Revisar diff para errores y limpiezas. Niveles: low/medium/high/xhigh/max/ultra. --fix aplica hallazgos." },
+  { cmd:"/color [color|default]", type:"builtin", cat:"UI",        desc:"Establecer color de la barra de solicitud. Colores: red, blue, green, yellow, purple, orange, pink, cyan." },
+  { cmd:"/compact [instruc.]",    type:"builtin", cat:"CONTEXTO",  desc:"Liberar contexto resumiendo la conversación hasta ahora con instrucciones de enfoque opcionales." },
+  { cmd:"/config",                type:"builtin", cat:"CONFIG",    desc:"Abrir Settings para ajustar tema, modelo, estilo de salida. Alias: /settings" },
+  { cmd:"/context [all]",         type:"builtin", cat:"CONTEXTO",  desc:"Visualizar uso del contexto como cuadrícula de colores con advertencias de capacidad." },
+  { cmd:"/copy [N]",              type:"builtin", cat:"UI",        desc:"Copiar la última (o N-ésima) respuesta al portapapeles. Selector interactivo para bloques de código." },
+  { cmd:"/debug [descripción]",   type:"skill",   cat:"DEBUG",     desc:"Habilitar registro de depuración y solucionar problemas leyendo el log de la sesión." },
+  { cmd:"/deep-research <pregunta>", type:"workflow", cat:"INVESTIGACIÓN", desc:"Expandir búsquedas web, obtener y verificar fuentes y sintetizar un informe citado." },
+  { cmd:"/diff",                  type:"builtin", cat:"CÓDIGO",    desc:"Abrir visor interactivo de diferencias mostrando cambios sin confirmar y diffs por turno." },
+  { cmd:"/doctor",                type:"builtin", cat:"DEBUG",     desc:"Diagnosticar y verificar instalación y configuración. Presiona 'f' para corregir problemas." },
+  { cmd:"/effort [nivel|auto]",   type:"builtin", cat:"MODELO",    desc:"Establecer nivel de esfuerzo: low/medium/high/xhigh/max/ultracode. Sin arg: control deslizante." },
+  { cmd:"/exit",                  type:"builtin", cat:"SESIÓN",    desc:"Salir de la CLI. En sesión de fondo, desconecta sin detener. Alias: /quit" },
+  { cmd:"/export [archivo]",      type:"builtin", cat:"SESIÓN",    desc:"Exportar conversación actual como texto sin formato." },
+  { cmd:"/fast [on|off]",         type:"builtin", cat:"MODELO",    desc:"Alternar fast mode activado o desactivado." },
+  { cmd:"/feedback [report]",     type:"builtin", cat:"AYUDA",     desc:"Enviar comentarios, reportar un error o compartir conversación. Alias: /bug, /share" },
+  { cmd:"/fewer-permission-prompts", type:"skill", cat:"CONFIG",   desc:"Escanear transcripciones y agregar lista de permitidos a settings.json para reducir prompts." },
+  { cmd:"/focus",                 type:"builtin", cat:"UI",        desc:"Alternar vista de enfoque mostrando solo último prompt y respuesta final. Solo pantalla completa." },
+  { cmd:"/goal [condición|clear]", type:"builtin", cat:"SESIÓN",   desc:"Establecer meta: Claude trabaja entre turnos hasta cumplirla. Sin arg: muestra meta actual." },
+  { cmd:"/help",                  type:"builtin", cat:"AYUDA",     desc:"Mostrar ayuda y comandos disponibles." },
+  { cmd:"/hooks",                 type:"builtin", cat:"CONFIG",    desc:"Ver configuraciones de hook para eventos de herramientas." },
+  { cmd:"/ide",                   type:"builtin", cat:"CONFIG",    desc:"Administrar integraciones de IDE y mostrar estado." },
+  { cmd:"/init",                  type:"builtin", cat:"PROYECTO",  desc:"Inicializar proyecto con guía CLAUDE.md. CLAUDE_CODE_NEW_INIT=1 para flujo interactivo." },
+  { cmd:"/insights",              type:"builtin", cat:"STATS",     desc:"Generar informe analizando sesiones, áreas de proyecto y puntos de fricción." },
+  { cmd:"/install-github-app",    type:"builtin", cat:"CONFIG",    desc:"Configurar Claude GitHub Actions para un repositorio." },
+  { cmd:"/keybindings",           type:"builtin", cat:"CONFIG",    desc:"Abrir o crear archivo de configuración de atajos de teclado." },
+  { cmd:"/loop [intervalo] [prompt]", type:"skill", cat:"AUTOMATIZACIÓN", desc:"Ejecutar prompt repetidamente. Omite intervalo para auto-ajuste. Alias: /proactive" },
+  { cmd:"/mcp",                   type:"builtin", cat:"CONFIG",    desc:"Administrar conexiones de servidores MCP y autenticación OAuth." },
+  { cmd:"/memory",                type:"builtin", cat:"MEMORIA",   desc:"Editar archivos de memoria CLAUDE.md, habilitar auto-memory y ver entradas." },
+  { cmd:"/model [modelo]",        type:"builtin", cat:"MODELO",    desc:"Cambiar el modelo de IA y guardarlo como predeterminado. Sin arg: abre selector." },
+  { cmd:"/permissions",           type:"builtin", cat:"CONFIG",    desc:"Administrar reglas de permitir/preguntar/denegar para permisos. Alias: /allowed-tools" },
+  { cmd:"/plan [descripción]",    type:"builtin", cat:"CÓDIGO",    desc:"Entrar en Plan Mode. Opcionalmente describir tarea para comenzar directamente." },
+  { cmd:"/recap",                 type:"builtin", cat:"SESIÓN",    desc:"Generar resumen de una línea de la sesión actual bajo demanda." },
+  { cmd:"/release-notes",         type:"builtin", cat:"AYUDA",     desc:"Ver registro de cambios en selector de versión interactivo." },
+  { cmd:"/reload-skills",         type:"builtin", cat:"CONFIG",    desc:"Re-escanear directorios de skills para aplicar cambios sin reiniciar." },
+  { cmd:"/remote-control",        type:"builtin", cat:"SESIÓN",    desc:"Hacer disponible esta sesión para control remoto desde claude.ai. Alias: /rc" },
+  { cmd:"/rename [nombre]",       type:"builtin", cat:"SESIÓN",    desc:"Renombrar sesión actual. Sin nombre: genera uno automáticamente." },
+  { cmd:"/resume [sesión]",       type:"builtin", cat:"SESIÓN",    desc:"Reanudar conversación por ID o nombre. Sin arg: abre selector. Alias: /continue" },
+  { cmd:"/review [PR]",           type:"skill",   cat:"CÓDIGO",    desc:"Revisar una PR localmente. Para revisión profunda en nube usar /code-review ultra." },
+  { cmd:"/rewind",                type:"builtin", cat:"SESIÓN",    desc:"Rebobinar conversación y/o código a un checkpoint anterior. Alias: /checkpoint, /undo" },
+  { cmd:"/run",                   type:"skill",   cat:"CÓDIGO",    desc:"Lanzar la aplicación del proyecto para ver un cambio funcionando en vivo." },
+  { cmd:"/sandbox",               type:"builtin", cat:"CONFIG",    desc:"Alternar sandbox mode. Solo en plataformas compatibles." },
+  { cmd:"/schedule [descripción]", type:"builtin", cat:"AUTOMATIZACIÓN", desc:"Crear, actualizar, listar o ejecutar routines en infraestructura en la nube. Alias: /routines" },
+  { cmd:"/security-review",       type:"skill",   cat:"CÓDIGO",    desc:"Analizar cambios pendientes para detectar vulnerabilidades: inyección, autenticación, exposición de datos." },
+  { cmd:"/simplify [objetivo]",   type:"skill",   cat:"CÓDIGO",    desc:"Revisar código cambiado para limpiezas y aplicar correcciones con 4 agentes en paralelo." },
+  { cmd:"/skills",                type:"builtin", cat:"CONFIG",    desc:"Listar skills disponibles. 't' ordena por tokens. Espacio para ocultar un skill." },
+  { cmd:"/stop",                  type:"builtin", cat:"SESIÓN",    desc:"Detener la sesión de fondo actual. Solo disponible conectado a sesión de fondo." },
+  { cmd:"/tasks",                 type:"builtin", cat:"SESIÓN",    desc:"Listar y administrar tareas de fondo. Alias: /bashes" },
+  { cmd:"/teleport",              type:"builtin", cat:"SESIÓN",    desc:"Extraer sesión web en esta terminal: obtiene rama y conversación. Alias: /tp" },
+  { cmd:"/theme",                 type:"builtin", cat:"UI",        desc:"Cambiar tema de color. Incluye auto, claro/oscuro, accesible para daltónicos y ANSI." },
+  { cmd:"/tui [default|fullscreen]", type:"builtin", cat:"UI",     desc:"Establecer renderizador de UI. 'fullscreen' habilita pantalla alternativa sin parpadeo." },
+  { cmd:"/ultraplan <prompt>",    type:"builtin", cat:"CÓDIGO",    desc:"Redactar plan en sesión ultraplan, revisarlo en navegador y ejecutarlo remoto o local." },
+  { cmd:"/usage",                 type:"builtin", cat:"STATS",     desc:"Mostrar costo de sesión, límites del plan y desglose por skill/agente/plugin. Alias: /cost, /stats" },
+  { cmd:"/verify",                type:"skill",   cat:"CÓDIGO",    desc:"Confirmar que un cambio hace lo que debe construyendo y ejecutando la aplicación." },
+  { cmd:"/voice [hold|tap|off]",  type:"builtin", cat:"UI",        desc:"Alternar dictado de voz o habilitarlo en modo específico. Requiere cuenta Claude.ai." },
+  { cmd:"/workflows",             type:"builtin", cat:"AGENTES",   desc:"Abrir vista de progreso de workflow para observar, pausar, reanudar o guardar workflows." },
+];
+
+const CMD_CATS = ["TODOS", ...Array.from(new Set(COMMANDS_REF.map(c=>c.cat)))];
+
 // ── Datos iniciales ──────────────────────────────────────────────────────────
 const ARMORS0 = [
   { id:"MK-I",     name:"MARK I",     status:"ACTIVE",  power:98,  shield:87,  weapons:100, location:"MANSIÓN PRINCIPAL" },
@@ -136,6 +205,8 @@ function GBtn({ children, onClick, color=G.green, small }) {
 // ── APP PRINCIPAL ─────────────────────────────────────────────────────────────
 export default function GhostAI() {
   const [tab,        setTab]        = useState("command");
+  const [cmdSearch,  setCmdSearch]  = useState("");
+  const [cmdCat,     setCmdCat]     = useState("TODOS");
   const [msgs,       setMsgs]       = useState([{ role:"ghost", text:"Sistemas en línea. Bienvenido de vuelta, Jefe. Todos los subsistemas operativos al 100%. ¿Qué ordenas?" }]);
   const [input,      setInput]      = useState("");
   const [busy,       setBusy]       = useState(false);
@@ -338,6 +409,7 @@ Satélites: 12 en órbita · Nodos internet: ∞`;
     { id:"armors",   label:"ARMADURAS",  icon:"⬡" },
     { id:"threats",  label:"AMENAZAS",   icon:"⚠" },
     { id:"vitals",   label:"CONSTANTES", icon:"♥" },
+    { id:"cmds",     label:"COMANDOS",   icon:"/" },
   ];
 
   return (
@@ -695,6 +767,135 @@ Satélites: 12 en órbita · Nodos internet: ∞`;
               ))}
             </div>
           )}
+
+          {/* ── TAB: COMANDOS ── */}
+          {tab==="cmds"&&(()=>{
+            const q = cmdSearch.toLowerCase();
+            const filtered = COMMANDS_REF.filter(c=>
+              (cmdCat==="TODOS"||c.cat===cmdCat) &&
+              (!q||c.cmd.toLowerCase().includes(q)||c.desc.toLowerCase().includes(q))
+            );
+            const tc = t=>t==="skill"?G.cyan:t==="workflow"?G.yellow:G.green;
+            const tl = t=>t==="skill"?"SKILL":t==="workflow"?"FLOW":"SYS";
+            const builtins  = COMMANDS_REF.filter(c=>c.type==="builtin").length;
+            const skills    = COMMANDS_REF.filter(c=>c.type==="skill").length;
+            const workflows = COMMANDS_REF.filter(c=>c.type==="workflow").length;
+            return (
+              <div style={{ display:"flex",flexDirection:"column",gap:14,height:"calc(100vh - 195px)" }}>
+
+                {/* ── CABECERA DE STATS ── */}
+                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10 }}>
+                  {[[builtins,"COMANDOS SYS",G.green,"◉"],[skills,"SKILLS",G.cyan,"◈"],[workflows,"WORKFLOWS",G.yellow,"▲"]].map(([n,l,c,ic])=>(
+                    <div key={l} style={{ padding:"12px 16px",background:G.panel,border:`1px solid ${c}30`,borderRadius:4,display:"flex",alignItems:"center",gap:14,boxShadow:`inset 0 0 20px ${c}08` }}>
+                      <div style={{ fontSize:28,fontFamily:"'Orbitron',monospace",color:c,fontWeight:900,textShadow:`0 0 16px ${c}`,lineHeight:1 }}>{n}</div>
+                      <div>
+                        <div style={{ fontSize:8,color:c,letterSpacing:3,marginBottom:2 }}>{ic} {l}</div>
+                        <div style={{ width:40,height:2,background:`${c}30`,borderRadius:1 }}><div style={{ width:`${(n/COMMANDS_REF.length*100)}%`,height:"100%",background:c,boxShadow:`0 0 6px ${c}` }} /></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* ── CUERPO PRINCIPAL ── */}
+                <div style={{ display:"grid",gridTemplateColumns:"160px 1fr",gap:14,flex:1,minHeight:0 }}>
+
+                  {/* Sidebar de categorías */}
+                  <div style={{ background:G.panel,border:`1px solid ${G.border}`,borderRadius:4,overflow:"hidden",display:"flex",flexDirection:"column" }}>
+                    <div style={{ padding:"8px 12px",borderBottom:`1px solid ${G.border}`,fontSize:9,color:G.green,letterSpacing:3 }}>◈ CATEGORÍAS</div>
+                    <div style={{ overflowY:"auto",flex:1 }}>
+                      {CMD_CATS.map(cat=>{
+                        const cnt = cat==="TODOS"?COMMANDS_REF.length:COMMANDS_REF.filter(c=>c.cat===cat).length;
+                        const active = cmdCat===cat;
+                        return (
+                          <div key={cat} onClick={()=>setCmdCat(cat)} style={{ padding:"9px 12px",cursor:"pointer",background:active?`${G.green}12`:"transparent",borderLeft:`2px solid ${active?G.green:"transparent"}`,display:"flex",justifyContent:"space-between",alignItems:"center",transition:"all .15s" }}
+                            onMouseEnter={e=>{ if(!active) e.currentTarget.style.background=`${G.green}07`; }}
+                            onMouseLeave={e=>{ if(!active) e.currentTarget.style.background="transparent"; }}
+                          >
+                            <span style={{ fontSize:9,color:active?G.green:G.muted,letterSpacing:1 }}>{cat}</span>
+                            <span style={{ fontSize:8,color:active?G.green:G.border,background:active?`${G.green}20`:`${G.border}30`,padding:"1px 5px",borderRadius:8 }}>{cnt}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Panel de comandos */}
+                  <div style={{ background:G.panel,border:`1px solid ${G.border}`,borderRadius:4,display:"flex",flexDirection:"column",overflow:"hidden" }}>
+
+                    {/* Barra de búsqueda tipo terminal */}
+                    <div style={{ padding:"10px 14px",borderBottom:`1px solid ${G.border}`,display:"flex",alignItems:"center",gap:10,background:`${G.green}04` }}>
+                      <span style={{ color:G.green,fontSize:12,fontFamily:"'Orbitron',monospace",fontWeight:900 }}>GHOST://&gt;</span>
+                      <input
+                        value={cmdSearch}
+                        onChange={e=>setCmdSearch(e.target.value)}
+                        placeholder="buscar comando..."
+                        style={{ flex:1,background:"transparent",border:"none",color:G.green,fontSize:12,caretColor:G.green,fontFamily:"'Courier New',monospace" }}
+                      />
+                      {cmdSearch
+                        ? <button onClick={()=>setCmdSearch("")} style={{ background:"none",border:`1px solid ${G.muted}40`,borderRadius:2,color:G.muted,cursor:"pointer",fontSize:10,padding:"2px 7px",fontFamily:"monospace" }}>CLR</button>
+                        : <span style={{ fontSize:9,color:G.muted,letterSpacing:1,animation:"blink 1.4s infinite" }}>█</span>
+                      }
+                      <span style={{ fontSize:9,color:G.muted,letterSpacing:1,whiteSpace:"nowrap" }}>{filtered.length} / {COMMANDS_REF.length}</span>
+                    </div>
+
+                    {/* Cabecera de columnas */}
+                    <div style={{ display:"grid",gridTemplateColumns:"42px 200px 55px 1fr",gap:10,padding:"6px 14px",borderBottom:`1px solid ${G.border}`,background:`${G.green}03` }}>
+                      {["#","COMANDO","TIPO","DESCRIPCIÓN"].map(h=>(
+                        <span key={h} style={{ fontSize:8,color:G.muted,letterSpacing:2 }}>{h}</span>
+                      ))}
+                    </div>
+
+                    {/* Filas de comandos */}
+                    <div style={{ overflowY:"auto",flex:1 }}>
+                      {filtered.length===0
+                        ? (
+                          <div style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:10,color:G.muted }}>
+                            <div style={{ fontSize:28,opacity:.3 }}>/</div>
+                            <div style={{ fontSize:10,letterSpacing:3 }}>// SIN RESULTADOS //</div>
+                            <div style={{ fontSize:9,color:G.border }}>Intenta con otro término</div>
+                          </div>
+                        )
+                        : filtered.map((c,i)=>(
+                          <div key={i}
+                            style={{ display:"grid",gridTemplateColumns:"42px 200px 55px 1fr",gap:10,padding:"9px 14px",borderBottom:`1px solid ${G.border}08`,alignItems:"start",cursor:"default",transition:"background .12s" }}
+                            onMouseEnter={e=>{
+                              e.currentTarget.style.background=`${tc(c.type)}08`;
+                              e.currentTarget.style.borderLeft=`2px solid ${tc(c.type)}60`;
+                            }}
+                            onMouseLeave={e=>{
+                              e.currentTarget.style.background="transparent";
+                              e.currentTarget.style.borderLeft="2px solid transparent";
+                            }}
+                          >
+                            <span style={{ fontSize:9,color:G.border,letterSpacing:1,paddingTop:2 }}>{String(i+1).padStart(2,"0")}</span>
+                            <code style={{ fontSize:11,color:G.green,fontFamily:"'Courier New',monospace",wordBreak:"break-all",textShadow:`0 0 8px ${G.green}40` }}>{c.cmd}</code>
+                            <div style={{ alignSelf:"start",paddingTop:1 }}>
+                              <span style={{ fontSize:7,padding:"2px 6px",background:`${tc(c.type)}18`,color:tc(c.type),borderRadius:2,border:`1px solid ${tc(c.type)}50`,letterSpacing:1,boxShadow:`0 0 6px ${tc(c.type)}20` }}>
+                                {tl(c.type)}
+                              </span>
+                            </div>
+                            <span style={{ fontSize:11,color:G.text,lineHeight:1.7,opacity:.85 }}>{c.desc}</span>
+                          </div>
+                        ))
+                      }
+                    </div>
+
+                    {/* Pie del panel */}
+                    <div style={{ padding:"6px 14px",borderTop:`1px solid ${G.border}`,display:"flex",gap:18,alignItems:"center",background:`${G.green}03` }}>
+                      {[["◉ SYS",G.green],["◈ SKILL",G.cyan],["▲ FLOW",G.yellow]].map(([l,c])=>(
+                        <div key={l} style={{ display:"flex",alignItems:"center",gap:5 }}>
+                          <span style={{ width:6,height:6,background:c,borderRadius:1,display:"inline-block",boxShadow:`0 0 5px ${c}` }} />
+                          <span style={{ fontSize:8,color:c,letterSpacing:1 }}>{l}</span>
+                        </div>
+                      ))}
+                      <div style={{ flex:1 }} />
+                      <span style={{ fontSize:8,color:G.muted,letterSpacing:1 }}>CLAUDE CODE — REFERENCIA v2</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
         </main>
 
