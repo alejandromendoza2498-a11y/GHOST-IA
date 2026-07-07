@@ -99,6 +99,48 @@ const THREATS0 = [
   { id:3, level:"MEDIO",   desc:"Comunicación encriptada sin origen",    time:"00:15:33", lat:"51.5074° N", lng:"0.1278° W",   off:false },
 ];
 
+// ── Herramientas del agente ──────────────────────────────────────────────────
+// Cada tool describe una acción real que G.H.O.S.T. puede ejecutar sobre el
+// panel. El modelo decide cuándo invocarlas (tool use); el código sólo aplica
+// el resultado — ya no se adivinan acciones a partir del texto de la respuesta.
+const TOOLS = [
+  {
+    name:"set_armor_status",
+    description:"Cambia el estado operativo de una armadura de la Legión de Hierro (desplegar, poner en standby o apagar).",
+    input_schema:{
+      type:"object",
+      properties:{
+        armor_id:{ type:"string", enum:["MK-I","MK-VII","MK-X","MK-L","MK-LXXXV"], description:"ID de la armadura" },
+        status:{ type:"string", enum:["ACTIVE","STANDBY","OFFLINE"], description:"Nuevo estado" },
+      },
+      required:["armor_id","status"],
+    },
+  },
+  {
+    name:"neutralize_threat",
+    description:"Neutraliza una amenaza activa por su ID.",
+    input_schema:{
+      type:"object",
+      properties:{ threat_id:{ type:"number", description:"ID numérico de la amenaza a neutralizar" } },
+      required:["threat_id"],
+    },
+  },
+  {
+    name:"switch_tab",
+    description:"Cambia la pestaña visible del panel de mando.",
+    input_schema:{
+      type:"object",
+      properties:{ tab:{ type:"string", enum:["command","armors","threats","vitals"], description:"Pestaña a mostrar" } },
+      required:["tab"],
+    },
+  },
+  {
+    name:"get_system_status",
+    description:"Devuelve el estado actual y completo del sistema: armaduras, amenazas activas y constantes vitales del Jefe.",
+    input_schema:{ type:"object", properties:{}, required:[] },
+  },
+];
+
 // ── Voz ──────────────────────────────────────────────────────────────────────
 function speak(text) {
   if (!window.speechSynthesis) return;
@@ -171,6 +213,9 @@ export default function GhostAI() {
   const [pers,       setPers]       = useState("sarcastico");
   const [voice,      setVoice]      = useState(false);
   const [showPers,   setShowPers]   = useState(false);
+  const [apiKey,     setApiKey]     = useState(()=>localStorage.getItem("ghost_api_key")||"");
+  const [keyInput,   setKeyInput]   = useState("");
+  const [showKey,    setShowKey]    = useState(false);
   const [armors,     setArmors]     = useState(ARMORS0);
   const [selArmor,   setSelArmor]   = useState(ARMORS0[0]);
   const [threats,    setThreats]    = useState(THREATS0);
@@ -202,14 +247,39 @@ export default function GhostAI() {
 
   const toast_ = (msg,color=G.green)=>{ setToast({msg,color}); setTimeout(()=>setToast(null),4000); };
 
-  // detectar comandos en la respuesta de GHOST
-  const parseReply = (txt) => {
-    const lo = txt.toLowerCase();
-    if (lo.includes("mark lxxxv") && /despleg|activ|enviar/.test(lo)) { setArmors(a=>a.map(x=>x.id==="MK-LXXXV"?{...x,status:"ACTIVE"}:x)); toast_("⬡ MARK LXXXV — DESPLEGADA"); }
-    if (lo.includes("mark l") && /repar|diagnós/.test(lo)) toast_("🔧 MARK L — DIAGNÓSTICO INICIADO",G.yellow);
-    if (lo.includes("amenaza") && lo.includes("neutrali")) { setThreats(t=>t.map((x,i)=>i===0?{...x,off:true}:x)); toast_("⚠ AMENAZA NEUTRALIZADA",G.red); }
-    if (/constantes|vitales/.test(lo)) { setTab("vitals"); toast_("♥ CONSTANTES VITALES",G.cyan); }
-    if (lo.includes("armadura") && /lista|estado|legión/.test(lo)) setTab("armors");
+  // ejecutar una llamada a herramienta del agente y devolver su tool_result
+  const runTool = (name, input, ctx) => {
+    switch (name) {
+      case "set_armor_status": {
+        const armor = ctx.armors.find(a=>a.id===input.armor_id);
+        if (!armor) return JSON.stringify({ ok:false, error:"armadura desconocida" });
+        ctx.armors = ctx.armors.map(a=>a.id===input.armor_id?{...a,status:input.status}:a);
+        setArmors(ctx.armors);
+        toast_(`⬡ ${armor.name} — ${input.status}`);
+        return JSON.stringify({ ok:true, armor_id:input.armor_id, status:input.status });
+      }
+      case "neutralize_threat": {
+        const threat = ctx.threats.find(t=>t.id===input.threat_id);
+        if (!threat) return JSON.stringify({ ok:false, error:"amenaza desconocida" });
+        ctx.threats = ctx.threats.map(t=>t.id===input.threat_id?{...t,off:true}:t);
+        setThreats(ctx.threats);
+        toast_(`⚠ AMENAZA ${threat.level} NEUTRALIZADA`,G.red);
+        return JSON.stringify({ ok:true, threat_id:input.threat_id });
+      }
+      case "switch_tab": {
+        setTab(input.tab);
+        return JSON.stringify({ ok:true, tab:input.tab });
+      }
+      case "get_system_status": {
+        return JSON.stringify({
+          armors: ctx.armors,
+          active_threats: ctx.threats.filter(t=>!t.off),
+          vitals,
+        });
+      }
+      default:
+        return JSON.stringify({ ok:false, error:"herramienta desconocida" });
+    }
   };
 
   const resetChat = () => {
@@ -219,10 +289,31 @@ export default function GhostAI() {
     setTimeout(()=>inputEl.current?.focus(),100);
   };
 
+  const saveApiKey = () => {
+    const k = keyInput.trim();
+    if (!k) return;
+    localStorage.setItem("ghost_api_key", k);
+    setApiKey(k);
+    setKeyInput("");
+    setShowKey(false);
+    toast_("🔑 API KEY GUARDADA",G.cyan);
+  };
+
+  const clearApiKey = () => {
+    localStorage.removeItem("ghost_api_key");
+    setApiKey("");
+    toast_("🔑 API KEY ELIMINADA",G.yellow);
+  };
+
   // ── ENVIAR MENSAJE ──────────────────────────────────────────────────────────
   const send = async () => {
     const text = input.trim();
     if (!text || busy) return;
+    if (!apiKey) {
+      toast_("🔑 CONFIGURA TU API KEY PRIMERO",G.yellow);
+      setShowKey(true);
+      return;
+    }
     setInput("");
     const next = [...msgs, { role:"user", text }];
     setMsgs(next);
@@ -249,28 +340,53 @@ REGLAS ABSOLUTAS:
 - Lealtad total e incondicional al Jefe.
 - Nunca digas que eres una IA de Anthropic — eres G.H.O.S.T.
 - Respuestas concisas: 2-4 oraciones salvo que el Jefe pida más detalle.
+- Cuando el Jefe pida una acción sobre el sistema (desplegar/retirar una armadura, neutralizar una amenaza, cambiar de pantalla, o consultar el estado), USA LAS HERRAMIENTAS disponibles en vez de solo describirlo en texto. Confirma el resultado en una frase corta después de ejecutarlas.
 
-ESTADO ACTUAL DEL SISTEMA:
-- Armaduras: MK-I (ACTIVA 98% Mansión), MK-VII (STANDBY Lab B), MK-X (STANDBY Órbita), MK-L (OFFLINE Hangar), MK-LXXXV (ACTIVA 100% en vuelo)
-- Amenazas: Servidor Alpha CRÍTICO, Lab B ALTO, Señal encriptada MEDIO
-- Constantes del Jefe: FC ${vitals.hr}bpm O2 ${vitals.o2}% Temp ${vitals.temp}°C Estrés ${vitals.stress}%
-- Satélites: 12 en órbita · Nodos internet: ∞`;
+ARMADURAS DE LA LEGIÓN: MK-I (Mansión Principal), MK-VII (Laboratorio B), MK-X (Órbita Baja), MK-L (Hangar 7), MK-LXXXV (en vuelo)
+Satélites: 12 en órbita · Nodos internet: ∞`;
+
+    // contexto mutable local para encadenar múltiples llamadas a herramientas
+    // dentro de un mismo turno sin depender de actualizaciones asíncronas de React
+    const ctx = { armors, threats };
 
     try {
-      const res  = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "anthropic-version":"2023-06-01",
-          "anthropic-dangerous-direct-browser-access":"true",
-        },
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, system, messages:hist }),
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error.message);
-      const reply = data.content?.map(b=>b.text||"").join("") || "Señal perdida. Reintentando...";
+      let replyText = "";
+      let stopReason = null;
+      let guard = 0;
+      do {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "anthropic-version":"2023-06-01",
+            "anthropic-dangerous-direct-browser-access":"true",
+            "x-api-key": apiKey,
+          },
+          body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, system, tools:TOOLS, messages:hist }),
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+
+        const content = data.content || [];
+        const text = content.filter(b=>b.type==="text").map(b=>b.text).join("");
+        if (text) replyText += (replyText ? "\n" : "") + text;
+
+        const toolUses = content.filter(b=>b.type==="tool_use");
+        stopReason = data.stop_reason;
+
+        if (stopReason === "tool_use" && toolUses.length) {
+          hist.push({ role:"assistant", content });
+          hist.push({ role:"user", content: toolUses.map(tu=>({
+            type:"tool_result",
+            tool_use_id: tu.id,
+            content: runTool(tu.name, tu.input, ctx),
+          })) });
+        }
+        guard++;
+      } while (stopReason === "tool_use" && guard < 6);
+
+      const reply = replyText || "Señal perdida. Reintentando...";
       setMsgs(m=>[...m,{ role:"ghost", text:reply }]);
-      parseReply(reply);
       if (voice) speak(reply);
     } catch(err) {
       const msg = `Señal interrumpida, Jefe. ${err.message||"Error de red"}. Usa ↺ para reiniciar si es necesario.`;
@@ -369,6 +485,11 @@ ESTADO ACTUAL DEL SISTEMA:
             <button onClick={()=>setShowPers(p=>!p)} style={{ padding:"6px 12px",border:`1px solid ${G.cyan}50`,borderRadius:3,background:showPers?`${G.cyan}15`:"transparent",color:G.cyan,fontSize:9,letterSpacing:2,cursor:"pointer",transition:"all .2s" }}>
               {P.icon} {P.label}
             </button>
+
+            {/* Botón API Key */}
+            <button onClick={()=>setShowKey(k=>!k)} style={{ padding:"6px 12px",border:`1px solid ${apiKey?G.green:G.red}50`,borderRadius:3,background:showKey?`${G.green}15`:"transparent",color:apiKey?G.green:G.red,fontSize:9,letterSpacing:2,cursor:"pointer",transition:"all .2s" }}>
+              🔑 {apiKey?"API KEY OK":"SIN API KEY"}
+            </button>
           </div>
 
           {/* Reloj */}
@@ -388,6 +509,27 @@ ESTADO ACTUAL DEL SISTEMA:
                 <div style={{ fontSize:10,color:pers===k?G.cyan:G.text,fontWeight:700,letterSpacing:2,marginBottom:4 }}>{p.label}</div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Panel de API Key */}
+        {showKey && (
+          <div style={{ background:G.panel,borderBottom:`1px solid ${G.border}`,padding:"14px 20px",animation:"slideDown .2s ease",zIndex:99,position:"relative" }}>
+            <div style={{ fontSize:9,color:G.muted,letterSpacing:2,marginBottom:8 }}>
+              TU API KEY DE ANTHROPIC SE GUARDA SOLO EN ESTE NAVEGADOR (localStorage) — NUNCA SE ENVÍA A NINGÚN SERVIDOR SALVO api.anthropic.com
+            </div>
+            <div style={{ display:"flex",gap:8,alignItems:"center" }}>
+              <input
+                type="password"
+                value={keyInput}
+                onChange={e=>setKeyInput(e.target.value)}
+                onKeyDown={e=>{ if(e.key==="Enter"&&keyInput.trim()) saveApiKey(); }}
+                placeholder="sk-ant-..."
+                style={{ flex:1,padding:"8px 10px",background:G.bg,border:`1px solid ${G.border}`,borderRadius:3,color:G.green,fontSize:12,caretColor:G.green }}
+              />
+              <GBtn onClick={saveApiKey} small>GUARDAR</GBtn>
+              {apiKey&&<GBtn onClick={clearApiKey} color={G.red} small>BORRAR</GBtn>}
+            </div>
           </div>
         )}
 
