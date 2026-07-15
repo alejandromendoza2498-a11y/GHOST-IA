@@ -114,6 +114,30 @@ const UIPRO_STYLES = [
   { n:"Nature Distilled",      p:"muted earthy terracotta sand olive, organic materials, warm tones, handmade warmth, natural textures, artisan quality, sustainable vibe, soft gradients, botanical" },
 ];
 
+// ── GHOST × MEIGEN — Prompts personales de Alejandro Mendoza ─────────────────
+const MEIGEN_PROMPTS = [
+  { icon:"🥊", cat:"FIGHTER",   label:"FIGHTER HERO SHOT",
+    p:"Cinematic sports portrait of a welterweight UFC fighter, 7-0 undefeated record, standing in a dramatic octagon corner, golden hour light from above casting sharp shadows, body glistening, championship mindset in the eyes, Monterrey Mexico city skyline glowing in the background through arena fog, neon green accent lights framing the fighter, editorial Sports Illustrated style, hyper-realistic skin detail, intense composition, no text, 9:16 vertical poster ratio." },
+  { icon:"🤖", cat:"GHOST",     label:"GHOST HUD PORTRAIT",
+    p:"Futuristic HUD heads-up display overlay on a fighter portrait, thin neon green lines (#00FF41) scanning the subject, floating data panels with fighter stats (7-0, 170 lbs, Monterrey MX), matrix green particle grid background fading to deep black (#050A05), monospaced terminal font readouts, tactical brackets framing the face, holographic cyan (#00FFFF) accent elements, G.H.O.S.T. system aesthetic, cinematic 16:9 widescreen." },
+  { icon:"🇲🇽", cat:"FIGHTER",  label:"POSTER UFC MONTERREY",
+    p:"Epic UFC fight poster design for a Mexican welterweight champion from Monterrey. Subject posed with championship belt, Mexican flag colors subtly integrated (red, white, green), golden dramatic back lighting (#C8A23A gold accent), dark atmospheric arena background, floating fighter stats in clean modern typography, cinematic dust particles in light beams, motivational energy, no actual logos, movie poster composition, 2:3 vertical ratio." },
+  { icon:"👨‍👩‍👧‍👦", cat:"FAMILIA",  label:"FAMILIA CINEMATIC",
+    p:"Intimate cinematic family portrait with warm golden hour natural light, a strong athletic man surrounded by his beautiful family, genuine laughter and emotion, soft bokeh background suggesting home or nature, film photography warmth with subtle grain, teal and orange color grade, no text, emotional storytelling, luxury editorial lifestyle photography, horizontal 16:9." },
+  { icon:"🏋️", cat:"FIGHTER",   label:"TRAINING MONTAGE",
+    p:"Dark and dramatic training montage poster composition: fighter shadowboxing in a dimly lit gym, single overhead spotlight creating dramatic chiaroscuro shadows, sweat particles frozen in motion, hyper-detailed knuckles and muscle definition, gritty textured background (worn gym walls), deep blacks with neon green light leaks on edges, motivational warrior energy, Sports Photography award-winning composition, vertical 2:3 poster ratio." },
+  { icon:"💎", cat:"GHOST",     label:"LUXURY GHOST TERMINAL",
+    p:"Premium tech brand visual identity design: dark terminal interface (#050A05 background), phosphor green text (#00FF41) in monospace font, geometric HUD grid overlay, glowing G logo in center with neon border animation frames, cyberpunk meets luxury corporate aesthetic, gold (#C8A23A) accent lines for premium feel, holographic depth, clean editorial product photography style, 16:9 widescreen." },
+  { icon:"🌃", cat:"MONTERREY", label:"MONTERREY NOCTURNO",
+    p:"Cinematic aerial nighttime photograph of Monterrey Mexico skyline, iconic Cerro de la Silla mountain silhouetted against purple-teal city glow, a lone fighter silhouette on a rooftop in foreground, stadium lights in distance, atmospheric humidity haze creating lens flares, dramatic wide angle perspective, golden street light reflections, Mexican pride, cinematic Blade Runner aesthetic with Latin warmth, 21:9 cinematic ultra-wide." },
+  { icon:"🏆", cat:"FIGHTER",   label:"CHAMPIONSHIP MOMENT",
+    p:"Hyper-cinematic split-second victory moment: fighter with fist raised after knockout, referee stopping the fight in background, arena explosion of confetti and Mexican flags, crowd roaring in blur, golden championship spotlight from above, genuine tears and triumph on fighter's face, Sports Illustrated magazine cover composition, editorial flash photography with motion blur on crowd, frozen glory in sharp focus, vertical 2:3." },
+  { icon:"🤖", cat:"GHOST",     label:"AI SELF-PORTRAIT",
+    p:"Dramatic portrait of an AI entity made physical: a figure composed of holographic green data streams (#00FF41) forming a human silhouette, wearing tactical armor with circuit patterns, face partially revealed through digital static/glitch effect, neon cyan eyes glowing, G.H.O.S.T. terminal readouts floating around figure, deep black background with matrix rain particles, sci-fi cinematic composition, vertical 9:16." },
+  { icon:"🎥", cat:"VIDEO",     label:"HIGHLIGHT REEL",
+    p:"Cinematic slow-motion UFC training highlight video: fighter throwing precise combinations, camera orbits 360 degrees, motion blur on fast strikes, dramatic arena lighting with Mexican flag colors in background, crowd energy, epic orchestral score implied in visual pacing, slow ramp to normal speed on finishing strike, gold sparks and particle effects at impact point, IMAX-quality, 16:9." },
+];
+
 // ── Datos iniciales ──────────────────────────────────────────────────────────
 const ARMORS0 = [
   { id:"MK-I",     name:"MARK I",     status:"ACTIVE",  power:98,  shield:87,  weapons:100, location:"MANSIÓN PRINCIPAL" },
@@ -223,6 +247,7 @@ export default function GhostAI() {
   const [rbgBusy,    setRbgBusy]    = useState(false);
   const [rbgError,   setRbgError]   = useState(null);
   const [uiSearch,   setUiSearch]   = useState("");
+  const [meigenCat,  setMeigenCat]  = useState("TODOS");
   const [clock,      setClock]      = useState(new Date());
   const [toast,      setToast]      = useState(null);
   const chatEl  = useRef(null);
@@ -1078,10 +1103,10 @@ ESTADO ACTUAL DEL SISTEMA:
           {tab==="imagen"&&(()=>{
             const GP = "#A78BFA";
             const EXAMPLES = [
-              "Un samurái cyberpunk en Monterrey de noche",
-              "G.H.O.S.T. — sistema de IA en una sala de servidores verde neón",
-              "Un peleador de UFC rodeado de luz y gloria",
-              "Ciudad futurista con armaduras de hierro volando",
+              MEIGEN_PROMPTS[0].p,
+              MEIGEN_PROMPTS[1].p,
+              MEIGEN_PROMPTS[7].p,
+              MEIGEN_PROMPTS[3].p,
             ];
             return (
               <div style={{ display:"grid", gridTemplateColumns:"1fr 420px", gap:14, height:"calc(100vh - 195px)" }}>
@@ -1267,13 +1292,20 @@ ESTADO ACTUAL DEL SISTEMA:
                     : (
                       /* Prompts de ejemplo */
                       <Panel title="EJEMPLOS RÁPIDOS" icon="◈" accent={GP}>
+                        <div style={{ fontSize:8, color:G.muted, letterSpacing:1, marginBottom:8 }}>
+                          Prompts GHOST × UFC — toca para cargar
+                        </div>
                         <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
-                          {EXAMPLES.map((ex,i)=>(
-                            <div key={i} onClick={()=>{ if(geminiKey){ setImgPrompt(ex); } }}
-                              style={{ padding:"9px 11px", border:`1px solid ${GP}25`, borderRadius:3, fontSize:10, color:G.muted, cursor:geminiKey?"pointer":"default", background:"transparent", transition:"all .15s", lineHeight:1.5 }}
-                              onMouseEnter={e=>{ if(geminiKey){ e.currentTarget.style.background=`${GP}10`; e.currentTarget.style.color=GP; }}}
-                              onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; e.currentTarget.style.color=G.muted; }}>
-                              ✦ {ex}
+                          {[MEIGEN_PROMPTS[0],MEIGEN_PROMPTS[1],MEIGEN_PROMPTS[7],MEIGEN_PROMPTS[3]].map((pm,i)=>(
+                            <div key={i} onClick={()=>{ if(geminiKey){ setImgPrompt(pm.p); } }}
+                              style={{ padding:"9px 11px", border:`1px solid ${GP}25`, borderRadius:3, cursor:geminiKey?"pointer":"default", background:"transparent", transition:"all .15s", display:"flex", alignItems:"center", gap:8 }}
+                              onMouseEnter={e=>{ if(geminiKey){ e.currentTarget.style.background=`${GP}10`; e.currentTarget.style.borderColor=`${GP}60`; }}}
+                              onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; e.currentTarget.style.borderColor=`${GP}25`; }}>
+                              <span style={{ fontSize:16 }}>{pm.icon}</span>
+                              <div>
+                                <div style={{ fontSize:9, color:GP, fontWeight:700, letterSpacing:1 }}>{pm.label}</div>
+                                <div style={{ fontSize:8, color:G.muted }}>{pm.cat}</div>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -1361,6 +1393,50 @@ ESTADO ACTUAL DEL SISTEMA:
                       </div>
                     )}
                   </Panel>
+
+                  {/* ── GHOST × MEIGEN — PROMPTS PERSONALES ── */}
+                  {(()=>{
+                    const MG = "#FFD700";
+                    const cats = ["TODOS", ...Array.from(new Set(MEIGEN_PROMPTS.map(p=>p.cat)))];
+                    const filtered = meigenCat==="TODOS" ? MEIGEN_PROMPTS : MEIGEN_PROMPTS.filter(p=>p.cat===meigenCat);
+                    return (
+                      <Panel title="GHOST × MEIGEN — MIS PROMPTS" icon="⚡" accent={MG}>
+                        {/* Filtro de categorías */}
+                        <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginBottom:10 }}>
+                          {cats.map(c=>(
+                            <button key={c} onClick={()=>setMeigenCat(c)}
+                              style={{ padding:"3px 8px", background:meigenCat===c?`${MG}25`:"transparent", border:`1px solid ${meigenCat===c?MG:MG+"30"}`, borderRadius:3, color:meigenCat===c?MG:G.muted, fontSize:8, cursor:"pointer", letterSpacing:1, fontFamily:"monospace", transition:"all .15s" }}>
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                        {/* Lista de prompts */}
+                        <div style={{ display:"flex", flexDirection:"column", gap:6, maxHeight:260, overflowY:"auto" }}>
+                          {filtered.map((pm,i)=>(
+                            <div key={i}
+                              onClick={()=>{ setImgPrompt(pm.p); }}
+                              title={pm.p}
+                              style={{ padding:"8px 10px", border:`1px solid ${MG}20`, borderRadius:3, cursor:"pointer", background:"transparent", transition:"all .15s" }}
+                              onMouseEnter={e=>{ e.currentTarget.style.background=`${MG}0D`; e.currentTarget.style.borderColor=`${MG}60`; }}
+                              onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; e.currentTarget.style.borderColor=`${MG}20`; }}>
+                              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:3 }}>
+                                <span style={{ fontSize:13 }}>{pm.icon}</span>
+                                <span style={{ fontSize:9, color:MG, fontWeight:700, letterSpacing:1, flex:1 }}>{pm.label}</span>
+                                <span style={{ fontSize:7, color:G.muted, background:`${MG}12`, padding:"1px 5px", borderRadius:2, letterSpacing:1 }}>{pm.cat}</span>
+                              </div>
+                              <div style={{ fontSize:8, color:G.muted, lineHeight:1.5, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                                {pm.p.slice(0, 80)}...
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Badge */}
+                        <div style={{ marginTop:8, padding:"5px 8px", background:`${MG}06`, borderRadius:3, border:`1px solid ${MG}20`, fontSize:7, color:G.muted, letterSpacing:1 }}>
+                          ⚡ Toca un prompt → se carga directo al generador · Basado en meigen.ai
+                        </div>
+                      </Panel>
+                    );
+                  })()}
 
                   {/* ── UI/UX PRO MAX — ESTILOS DE DISEÑO ── */}
                   <Panel title="ESTILOS DE DISEÑO — UI/UX PRO" icon="🎨" accent="#E879F9">
