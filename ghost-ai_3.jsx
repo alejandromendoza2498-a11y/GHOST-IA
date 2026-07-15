@@ -85,6 +85,59 @@ const COMMANDS_REF = [
 
 const CMD_CATS = ["TODOS", ...Array.from(new Set(COMMANDS_REF.map(c=>c.cat)))];
 
+// ── UI/UX Pro Max — estilos de diseño para generación de imágenes ─────────────
+const UIPRO_STYLES = [
+  { n:"Glassmorphism",         p:"frosted glass effect, backdrop blur 10-20px, translucent overlays rgba 10-30% opacity, vibrant background colors, subtle white borders, light source reflection, layered depth, modern cards" },
+  { n:"Cyberpunk UI",          p:"neon colors on dark #0D0D0D, terminal HUD aesthetic, glitch effects, scanlines overlay, matrix green accents, monospace fonts, angular shapes, dystopian tech, neon glow text borders" },
+  { n:"Retro-Futurism",        p:"neon blue pink cyan deep black, 80s aesthetic, CRT scanlines, glitch effects, neon glow, monospace fonts, geometric patterns, cyberpunk vaporwave, animated glitch" },
+  { n:"HUD / Sci-Fi FUI",      p:"futuristic heads up display, thin 1px lines, neon cyan blue on black, technical markers, decorative brackets, data visualization, monospaced tech fonts, glowing elements, transparency, holographic" },
+  { n:"Aurora UI",             p:"northern lights gradient mesh, smooth color blends, complementary pairs blue-orange purple-yellow, electric blue cyan, flowing animated background, iridescent effects, vibrant gradients" },
+  { n:"Vaporwave",             p:"sunset gradients pink cyan purple, 80s-90s nostalgia, glitch effects, Greek statue imagery, palm trees, grid patterns, neon glow, retro-futuristic, dreamy atmosphere, synthwave" },
+  { n:"Y2K Aesthetic",         p:"neon pink cyan chrome metallic textures, bubblegum gradients, glossy buttons, iridescent effects, 2000s futurism, star sparkle decorations, bubble shapes, tech-optimistic, shiny silver" },
+  { n:"Claymorphism",          p:"playful toy-like 3D, chunky bubbly aesthetic, rounded edges 16-24px, thick borders 3-4px, double shadows inner outer, pastel colors, smooth animations, children's creative feel" },
+  { n:"3D & Hyperrealism",     p:"immersive 3D realistic textures, complex shadows, realistic lighting, parallax 3-5 layers, physics-based motion, skeuomorphic tactile detail, depth, photorealistic materials" },
+  { n:"Dark Mode OLED",        p:"deep black #000000, dark grey #121212, midnight blue accents, minimal glow, vibrant neon accents green blue gold purple, high contrast text, OLED optimized, eye comfort" },
+  { n:"Liquid Glass",          p:"premium liquid glass morphing shapes, flowing animations, chromatic aberration, iridescent gradients, smooth transitions, SVG morphing, dynamic blur, fluid premium feel" },
+  { n:"Neubrutalism",          p:"high contrast hard black borders 3px, bright pop colors yellow red blue, no blur, sharp corners, bold typography, hard shadows offset 4px 4px, raw aesthetic functional" },
+  { n:"Bento Box Grid",        p:"modular cards varied sizes 1x1 2x1 2x2, Apple-style aesthetic, rounded corners 16-24px, soft shadows, clean hierarchy, asymmetric grid, neutral backgrounds hover effects" },
+  { n:"Memphis Design",        p:"bold geometric shapes triangles squiggles circles, bright clashing colors, 80s postmodern, playful patterns, dotted textures, asymmetric layouts, decorative elements" },
+  { n:"Biomimetic Organic",    p:"cellular fluid shapes, breathing animations, generative patterns, bioluminescent colors, physics-based movement, nature algorithms, life-like elements, flowing gradients" },
+  { n:"Gradient Mesh Aurora",  p:"multi-color mesh gradients, flowing color transitions, aurora northern lights, iridescent overlays, holographic shimmer, prismatic effects, smooth color morphing, rainbow spectrum" },
+  { n:"Chromatic Aberration",  p:"RGB split glitch aesthetic, color channel offset R G B, retro tech feel, VHS error look, lens distortion, scan lines, noise overlay, analog imperfection" },
+  { n:"Vintage Analog Film",   p:"film grain overlay, faded desaturated colors, warm sepia tones, light leaks, VHS tracking effect, polaroid frame, analog warmth, nostalgic photography feel" },
+  { n:"Spatial UI VisionOS",   p:"frosted glass panels, depth layers, translucent backgrounds 15-30% opacity, vibrant colors for active states, floating windows, immersive spatial feel, Apple Vision Pro style" },
+  { n:"Gen Z Chaos",           p:"clashing bright colors, sticker overlays, collage aesthetic, raw unpolished, mixed media, ironic elements, loud typography, internet culture, maximalist, colorful chaos" },
+  { n:"AI-Native UI",          p:"minimal chrome, conversational layout, streaming text area, typing indicators, context cards, subtle AI purple #6366F1, clean input, response bubbles, futuristic clean" },
+  { n:"Pixel Art",             p:"8-bit 16-bit aesthetic, pixelated fonts, sharp edges image-rendering pixelated, limited color palette NES, blocky UI elements, retro gaming feel, classic video game" },
+  { n:"Minimalism Swiss",      p:"white space geometric layouts, sans-serif fonts, high contrast, grid-based structure, essential elements only, no shadows gradients, clarity functionality, clean" },
+  { n:"Brutalism",             p:"raw unpolished stark aesthetic, pure primary colors red blue yellow, black white, no smooth transitions, sharp corners, bold large typography, visible grid lines, anti-design" },
+  { n:"Nature Distilled",      p:"muted earthy terracotta sand olive, organic materials, warm tones, handmade warmth, natural textures, artisan quality, sustainable vibe, soft gradients, botanical" },
+];
+
+// ── GHOST × MEIGEN — Prompts personales de Alejandro Mendoza ─────────────────
+const MEIGEN_PROMPTS = [
+  { icon:"🥊", cat:"FIGHTER",   label:"FIGHTER HERO SHOT",
+    p:"Cinematic sports portrait of a welterweight UFC fighter, 7-0 undefeated record, standing in a dramatic octagon corner, golden hour light from above casting sharp shadows, body glistening, championship mindset in the eyes, Monterrey Mexico city skyline glowing in the background through arena fog, neon green accent lights framing the fighter, editorial Sports Illustrated style, hyper-realistic skin detail, intense composition, no text, 9:16 vertical poster ratio." },
+  { icon:"🤖", cat:"GHOST",     label:"GHOST HUD PORTRAIT",
+    p:"Futuristic HUD heads-up display overlay on a fighter portrait, thin neon green lines (#00FF41) scanning the subject, floating data panels with fighter stats (7-0, 170 lbs, Monterrey MX), matrix green particle grid background fading to deep black (#050A05), monospaced terminal font readouts, tactical brackets framing the face, holographic cyan (#00FFFF) accent elements, G.H.O.S.T. system aesthetic, cinematic 16:9 widescreen." },
+  { icon:"🇲🇽", cat:"FIGHTER",  label:"POSTER UFC MONTERREY",
+    p:"Epic UFC fight poster design for a Mexican welterweight champion from Monterrey. Subject posed with championship belt, Mexican flag colors subtly integrated (red, white, green), golden dramatic back lighting (#C8A23A gold accent), dark atmospheric arena background, floating fighter stats in clean modern typography, cinematic dust particles in light beams, motivational energy, no actual logos, movie poster composition, 2:3 vertical ratio." },
+  { icon:"👨‍👩‍👧‍👦", cat:"FAMILIA",  label:"FAMILIA CINEMATIC",
+    p:"Intimate cinematic family portrait with warm golden hour natural light, a strong athletic man surrounded by his beautiful family, genuine laughter and emotion, soft bokeh background suggesting home or nature, film photography warmth with subtle grain, teal and orange color grade, no text, emotional storytelling, luxury editorial lifestyle photography, horizontal 16:9." },
+  { icon:"🏋️", cat:"FIGHTER",   label:"TRAINING MONTAGE",
+    p:"Dark and dramatic training montage poster composition: fighter shadowboxing in a dimly lit gym, single overhead spotlight creating dramatic chiaroscuro shadows, sweat particles frozen in motion, hyper-detailed knuckles and muscle definition, gritty textured background (worn gym walls), deep blacks with neon green light leaks on edges, motivational warrior energy, Sports Photography award-winning composition, vertical 2:3 poster ratio." },
+  { icon:"💎", cat:"GHOST",     label:"LUXURY GHOST TERMINAL",
+    p:"Premium tech brand visual identity design: dark terminal interface (#050A05 background), phosphor green text (#00FF41) in monospace font, geometric HUD grid overlay, glowing G logo in center with neon border animation frames, cyberpunk meets luxury corporate aesthetic, gold (#C8A23A) accent lines for premium feel, holographic depth, clean editorial product photography style, 16:9 widescreen." },
+  { icon:"🌃", cat:"MONTERREY", label:"MONTERREY NOCTURNO",
+    p:"Cinematic aerial nighttime photograph of Monterrey Mexico skyline, iconic Cerro de la Silla mountain silhouetted against purple-teal city glow, a lone fighter silhouette on a rooftop in foreground, stadium lights in distance, atmospheric humidity haze creating lens flares, dramatic wide angle perspective, golden street light reflections, Mexican pride, cinematic Blade Runner aesthetic with Latin warmth, 21:9 cinematic ultra-wide." },
+  { icon:"🏆", cat:"FIGHTER",   label:"CHAMPIONSHIP MOMENT",
+    p:"Hyper-cinematic split-second victory moment: fighter with fist raised after knockout, referee stopping the fight in background, arena explosion of confetti and Mexican flags, crowd roaring in blur, golden championship spotlight from above, genuine tears and triumph on fighter's face, Sports Illustrated magazine cover composition, editorial flash photography with motion blur on crowd, frozen glory in sharp focus, vertical 2:3." },
+  { icon:"🤖", cat:"GHOST",     label:"AI SELF-PORTRAIT",
+    p:"Dramatic portrait of an AI entity made physical: a figure composed of holographic green data streams (#00FF41) forming a human silhouette, wearing tactical armor with circuit patterns, face partially revealed through digital static/glitch effect, neon cyan eyes glowing, G.H.O.S.T. terminal readouts floating around figure, deep black background with matrix rain particles, sci-fi cinematic composition, vertical 9:16." },
+  { icon:"🎥", cat:"VIDEO",     label:"HIGHLIGHT REEL",
+    p:"Cinematic slow-motion UFC training highlight video: fighter throwing precise combinations, camera orbits 360 degrees, motion blur on fast strikes, dramatic arena lighting with Mexican flag colors in background, crowd energy, epic orchestral score implied in visual pacing, slow ramp to normal speed on finishing strike, gold sparks and particle effects at impact point, IMAX-quality, 16:9." },
+];
+
 // ── Datos iniciales ──────────────────────────────────────────────────────────
 const ARMORS0 = [
   { id:"MK-I",     name:"MARK I",     status:"ACTIVE",  power:98,  shield:87,  weapons:100, location:"MANSIÓN PRINCIPAL" },
@@ -175,17 +228,55 @@ export default function GhostAI() {
   const [selArmor,   setSelArmor]   = useState(ARMORS0[0]);
   const [threats,    setThreats]    = useState(THREATS0);
   const [vitals,     setVitals]     = useState({ hr:72, o2:98, temp:36.7, bp:"118/76", stress:22 });
+  const [crypto,     setCrypto]     = useState(null);
+  const [forex,      setForex]      = useState(null);
+  const [mktLoading, setMktLoading] = useState(false);
+  const [mktUpdate,  setMktUpdate]  = useState(null);
+  const [geminiKey,  setGeminiKey]  = useState("");
+  const [geminiKeyInput, setGeminiKeyInput] = useState("");
+  const [imgPrompt,  setImgPrompt]  = useState("");
+  const [imgHistory, setImgHistory] = useState([]);
+  const [imgResult,  setImgResult]  = useState(null);
+  const [imgBusy,    setImgBusy]    = useState(false);
+  const [imgError,   setImgError]   = useState(null);
+  const imgChatEl  = useRef(null);
+  const rbgFileRef = useRef(null);
+  const [rbgKey,     setRbgKey]     = useState("");
+  const [rbgKeyInput,setRbgKeyInput]= useState("");
+  const [rbgResult,  setRbgResult]  = useState(null);
+  const [rbgBusy,    setRbgBusy]    = useState(false);
+  const [rbgError,   setRbgError]   = useState(null);
+  const [uiSearch,   setUiSearch]   = useState("");
+  const [meigenCat,  setMeigenCat]  = useState("TODOS");
   const [clock,      setClock]      = useState(new Date());
   const [toast,      setToast]      = useState(null);
   const chatEl  = useRef(null);
   const inputEl = useRef(null);
 
+  // mercados — carga inicial y refresco cada 60s
+  const fetchMarkets = async () => {
+    setMktLoading(true);
+    try {
+      const [cryptoRes, forexRes] = await Promise.all([
+        fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,ripple,cardano&vs_currencies=usd&include_24hr_change=true&include_market_cap=true"),
+        fetch("https://api.frankfurter.app/latest?from=USD&to=EUR,MXN,GBP,JPY,BRL"),
+      ]);
+      if (cryptoRes.ok) setCrypto(await cryptoRes.json());
+      if (forexRes.ok)  setForex(await forexRes.json());
+      setMktUpdate(new Date());
+    } catch(_) {}
+    setMktLoading(false);
+  };
+  useEffect(()=>{ fetchMarkets(); const t=setInterval(fetchMarkets,60000); return()=>clearInterval(t); },[]);
+
   // reloj
   useEffect(()=>{ const t=setInterval(()=>setClock(new Date()),1000); return()=>clearInterval(t); },[]);
   // voces
   useEffect(()=>{ window.speechSynthesis?.getVoices(); },[]);
-  // scroll chat
+  // scroll chat principal
   useEffect(()=>{ if(chatEl.current) chatEl.current.scrollTop = chatEl.current.scrollHeight; },[msgs,busy]);
+  // scroll chat imágenes
+  useEffect(()=>{ if(imgChatEl.current) imgChatEl.current.scrollTop = imgChatEl.current.scrollHeight; },[imgHistory,imgBusy]);
   // constantes vitales — fluctuación simulada
   useEffect(()=>{
     const t = setInterval(()=>{
@@ -201,6 +292,104 @@ export default function GhostAI() {
   },[]);
 
   const toast_ = (msg,color=G.green)=>{ setToast({msg,color}); setTimeout(()=>setToast(null),4000); };
+
+  // ── GENERACIÓN DE IMÁGENES — GEMINI NANO-BANANA ──────────────────────────────
+  const GEM_PURPLE = "#A78BFA";
+  const generateImage = async () => {
+    const prompt = imgPrompt.trim();
+    if (!prompt || imgBusy || !geminiKey) return;
+    setImgPrompt("");
+    setImgError(null);
+    const userMsg = { role:"user", text:prompt, image:null };
+    const next = [...imgHistory, userMsg];
+    setImgHistory(next);
+    setImgBusy(true);
+
+    // Construir historial para la API (multi-turno)
+    const contents = next.map(m => ({
+      role: m.role === "user" ? "user" : "model",
+      parts: m.image
+        ? [{ text: m.text||"" }, { inlineData:{ mimeType:"image/png", data:m.image } }]
+        : [{ text: m.text||"" }],
+    }));
+
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify({
+            contents,
+            generationConfig: { responseModalities:["IMAGE","TEXT"], temperature:1 },
+          }),
+        }
+      );
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
+
+      const parts = data.candidates?.[0]?.content?.parts || [];
+      let imgData = null;
+      let replyText = "";
+      for (const p of parts) {
+        if (p.inlineData?.mimeType?.startsWith("image")) imgData = p.inlineData.data;
+        if (p.text) replyText += p.text;
+      }
+
+      if (imgData) setImgResult(imgData);
+      setImgHistory(h => [...h, { role:"model", text:replyText||"Imagen generada.", image:imgData }]);
+      toast_("◎ IMAGEN GENERADA", GEM_PURPLE);
+    } catch(err) {
+      setImgError(err.message || "Error de generación");
+      setImgHistory(h => [...h, { role:"model", text:`⚠ Error: ${err.message}`, image:null }]);
+    }
+    setImgBusy(false);
+  };
+
+  // ── REMOVE.BG ────────────────────────────────────────────────────────────────
+  const RBG_COLOR = "#F97316";
+
+  const removeBackground = async (blob) => {
+    setRbgBusy(true); setRbgError(null); setRbgResult(null);
+    const formData = new FormData();
+    formData.append("size", "auto");
+    formData.append("image_file", blob);
+    try {
+      const res = await fetch("https://api.remove.bg/v1.0/removebg", {
+        method: "POST",
+        headers: { "X-Api-Key": rbgKey },
+        body: formData,
+      });
+      if (res.ok) {
+        const buf = await res.arrayBuffer();
+        const url = URL.createObjectURL(new Blob([buf], { type:"image/png" }));
+        setRbgResult(url);
+        toast_("✂ FONDO ELIMINADO", RBG_COLOR);
+      } else {
+        throw new Error(`${res.status}: ${res.statusText}`);
+      }
+    } catch(e) { setRbgError(e.message); }
+    setRbgBusy(false);
+  };
+
+  const rbgFromFile = (e) => {
+    const file = e.target.files?.[0];
+    if (file) removeBackground(file);
+    e.target.value = "";
+  };
+
+  const rbgFromGenerated = () => {
+    if (!imgResult) return;
+    const byteStr = atob(imgResult);
+    const arr = new Uint8Array(byteStr.length);
+    for (let i=0; i<byteStr.length; i++) arr[i] = byteStr.charCodeAt(i);
+    removeBackground(new Blob([arr], { type:"image/png" }));
+  };
+
+  const resetImgChat = () => {
+    setImgHistory([]); setImgResult(null); setImgError(null); setImgPrompt("");
+    toast_("↺ SESIÓN DE IMÁGENES REINICIADA", GEM_PURPLE);
+  };
 
   // detectar comandos en la respuesta de GHOST
   const parseReply = (txt) => {
@@ -294,6 +483,8 @@ ESTADO ACTUAL DEL SISTEMA:
     { id:"threats",  label:"AMENAZAS",   icon:"⚠" },
     { id:"vitals",   label:"CONSTANTES", icon:"♥" },
     { id:"cmds",     label:"COMANDOS",   icon:"/" },
+    { id:"mercados", label:"MERCADOS",   icon:"◎" },
+    { id:"imagen",   label:"IMÁGENES",   icon:"✦" },
   ];
 
   return (
@@ -748,6 +939,550 @@ ESTADO ACTUAL DEL SISTEMA:
                       ))}
                       <div style={{ flex:1 }} />
                       <span style={{ fontSize:8,color:G.muted,letterSpacing:1 }}>CLAUDE CODE — REFERENCIA v2</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ── TAB: MERCADOS ── */}
+          {tab==="mercados"&&(()=>{
+            const COINS = [
+              { id:"bitcoin",  label:"BITCOIN",  sym:"BTC", icon:"₿" },
+              { id:"ethereum", label:"ETHEREUM", sym:"ETH", icon:"Ξ" },
+              { id:"solana",   label:"SOLANA",   sym:"SOL", icon:"◎" },
+              { id:"ripple",   label:"XRP",      sym:"XRP", icon:"✕" },
+              { id:"cardano",  label:"CARDANO",  sym:"ADA", icon:"₳" },
+            ];
+            const PAIRS = [
+              { key:"MXN", label:"USD/MXN", flag:"🇲🇽" },
+              { key:"EUR", label:"USD/EUR", flag:"🇪🇺" },
+              { key:"GBP", label:"USD/GBP", flag:"🇬🇧" },
+              { key:"JPY", label:"USD/JPY", flag:"🇯🇵" },
+              { key:"BRL", label:"USD/BRL", flag:"🇧🇷" },
+            ];
+            const chgColor = v => !v ? G.muted : v>0 ? G.green : G.red;
+            const chgSign  = v => !v ? "" : v>0 ? "▲" : "▼";
+            const fmt = (n,d=2) => n==null?"—":n.toLocaleString("es-MX",{minimumFractionDigits:d,maximumFractionDigits:d});
+            return (
+              <div style={{ display:"flex",flexDirection:"column",gap:14,height:"calc(100vh - 195px)" }}>
+
+                {/* ── CABECERA ── */}
+                <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 16px",background:G.panel,border:`1px solid ${G.border}`,borderRadius:4 }}>
+                  <div style={{ display:"flex",alignItems:"center",gap:12 }}>
+                    <div style={{ fontFamily:"'Orbitron',monospace",fontSize:14,fontWeight:900,color:G.cyan,letterSpacing:4,textShadow:`0 0 16px ${G.cyan}` }}>◎ MAIA MARKETS</div>
+                    <div style={{ fontSize:9,color:G.muted,letterSpacing:2 }}>MULTI-AGENT INVESTMENT ANALYSIS</div>
+                  </div>
+                  <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+                    {mktLoading && <div style={{ fontSize:9,color:G.cyan,letterSpacing:2,animation:"blink 1s infinite" }}>● ACTUALIZANDO...</div>}
+                    {mktUpdate  && <div style={{ fontSize:9,color:G.muted,letterSpacing:1 }}>Última actualización: {mktUpdate.toLocaleTimeString("es-MX",{hour12:false})}</div>}
+                    <button onClick={fetchMarkets} disabled={mktLoading}
+                      style={{ padding:"5px 12px",background:"transparent",border:`1px solid ${G.cyan}50`,borderRadius:3,color:G.cyan,fontSize:9,letterSpacing:2,cursor:"pointer",fontFamily:"monospace",opacity:mktLoading?.4:1 }}>
+                      ↺ REFRESH
+                    </button>
+                  </div>
+                </div>
+
+                {/* ── CUERPO ── */}
+                <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,flex:1,minHeight:0 }}>
+
+                  {/* CRYPTO */}
+                  <div style={{ background:G.panel,border:`1px solid ${G.border}`,borderRadius:4,display:"flex",flexDirection:"column",overflow:"hidden" }}>
+                    <div style={{ padding:"8px 14px",borderBottom:`1px solid ${G.border}`,display:"flex",alignItems:"center",gap:8,background:`${G.cyan}06` }}>
+                      <span style={{ fontSize:10,color:G.cyan,letterSpacing:3,fontFamily:"monospace",fontWeight:700 }}>₿ CRIPTOMONEDAS</span>
+                      <div style={{ flex:1 }} />
+                      <span style={{ fontSize:8,color:G.muted }}>vía CoinGecko</span>
+                    </div>
+                    <div style={{ flex:1,overflowY:"auto" }}>
+                      {!crypto
+                        ? <div style={{ display:"flex",alignItems:"center",justifyContent:"center",height:"100%",color:G.muted,fontSize:10,letterSpacing:2,animation:"blink 1s infinite" }}>CONECTANDO...</div>
+                        : COINS.map(c=>{
+                          const d = crypto[c.id];
+                          const chg = d?.usd_24h_change;
+                          const mc  = d?.usd_market_cap;
+                          return (
+                            <div key={c.id} style={{ display:"grid",gridTemplateColumns:"36px 1fr auto",gap:10,padding:"12px 14px",borderBottom:`1px solid ${G.border}08`,alignItems:"center",transition:"background .12s" }}
+                              onMouseEnter={e=>e.currentTarget.style.background=`${G.cyan}06`}
+                              onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+                            >
+                              <div style={{ width:34,height:34,borderRadius:4,border:`1px solid ${G.cyan}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:G.cyan,background:`${G.cyan}10`,boxShadow:`0 0 8px ${G.cyan}20` }}>
+                                {c.icon}
+                              </div>
+                              <div>
+                                <div style={{ fontSize:10,color:G.text,fontWeight:700,letterSpacing:1,marginBottom:2 }}>{c.sym} <span style={{ fontSize:8,color:G.muted,fontWeight:400 }}>{c.label}</span></div>
+                                {mc && <div style={{ fontSize:8,color:G.muted }}>Cap: ${(mc/1e9).toFixed(1)}B</div>}
+                              </div>
+                              <div style={{ textAlign:"right" }}>
+                                <div style={{ fontSize:13,color:G.green,fontWeight:700,fontFamily:"'Orbitron',monospace",textShadow:`0 0 8px ${G.green}60` }}>
+                                  ${fmt(d?.usd)}
+                                </div>
+                                <div style={{ fontSize:9,color:chgColor(chg),marginTop:2 }}>
+                                  {chgSign(chg)} {chg!=null?Math.abs(chg).toFixed(2):"—"}%
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      }
+                    </div>
+                  </div>
+
+                  {/* FOREX + INFO MAIA */}
+                  <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
+
+                    {/* Forex */}
+                    <div style={{ background:G.panel,border:`1px solid ${G.border}`,borderRadius:4,display:"flex",flexDirection:"column",overflow:"hidden",flex:1 }}>
+                      <div style={{ padding:"8px 14px",borderBottom:`1px solid ${G.border}`,display:"flex",alignItems:"center",gap:8,background:`${G.yellow}06` }}>
+                        <span style={{ fontSize:10,color:G.yellow,letterSpacing:3,fontFamily:"monospace",fontWeight:700 }}>◉ FOREX</span>
+                        <div style={{ flex:1 }} />
+                        <span style={{ fontSize:8,color:G.muted }}>vía Frankfurter</span>
+                      </div>
+                      <div style={{ flex:1,overflowY:"auto" }}>
+                        {!forex
+                          ? <div style={{ display:"flex",alignItems:"center",justifyContent:"center",height:"100%",color:G.muted,fontSize:10,letterSpacing:2,animation:"blink 1s infinite" }}>CONECTANDO...</div>
+                          : PAIRS.map(p=>{
+                            const rate = forex.rates?.[p.key];
+                            return (
+                              <div key={p.key} style={{ display:"flex",alignItems:"center",gap:12,padding:"11px 14px",borderBottom:`1px solid ${G.border}08`,transition:"background .12s" }}
+                                onMouseEnter={e=>e.currentTarget.style.background=`${G.yellow}06`}
+                                onMouseLeave={e=>e.currentTarget.style.background="transparent"}
+                              >
+                                <span style={{ fontSize:18 }}>{p.flag}</span>
+                                <div style={{ flex:1 }}>
+                                  <div style={{ fontSize:10,color:G.text,fontWeight:700,letterSpacing:1 }}>{p.label}</div>
+                                  <div style={{ fontSize:8,color:G.muted }}>1 USD =</div>
+                                </div>
+                                <div style={{ fontSize:14,color:G.yellow,fontWeight:700,fontFamily:"'Orbitron',monospace",textShadow:`0 0 8px ${G.yellow}60` }}>
+                                  {fmt(rate,4)}
+                                </div>
+                              </div>
+                            );
+                          })
+                        }
+                      </div>
+                    </div>
+
+                    {/* Banner MAIA */}
+                    <div style={{ background:G.panel,border:`1px solid ${G.cyan}30`,borderRadius:4,padding:"16px",boxShadow:`0 0 20px ${G.cyan}10` }}>
+                      <div style={{ display:"flex",gap:10,marginBottom:10,alignItems:"flex-start" }}>
+                        <div style={{ width:36,height:36,border:`2px solid ${G.cyan}`,borderRadius:4,display:"flex",alignItems:"center",justifyContent:"center",color:G.cyan,fontSize:16,flexShrink:0,animation:"glow 3s infinite" }}>◎</div>
+                        <div>
+                          <div style={{ fontSize:11,color:G.cyan,fontWeight:700,letterSpacing:2,marginBottom:3 }}>MAIA — ANÁLISIS PROFUNDO</div>
+                          <div style={{ fontSize:10,color:G.muted,lineHeight:1.6 }}>5 agentes de IA analizan crypto, acciones, forex y materias primas en paralelo según tu perfil de riesgo.</div>
+                        </div>
+                      </div>
+                      <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:12 }}>
+                        {[["4","Analistas sectoriales",G.cyan],["1","Estratega IA",G.green],["∞","Activos cubiertos",G.yellow]].map(([n,l,c])=>(
+                          <div key={l} style={{ padding:"8px",background:`${c}08`,border:`1px solid ${c}25`,borderRadius:3,textAlign:"center" }}>
+                            <div style={{ fontSize:18,color:c,fontWeight:700,fontFamily:"'Orbitron',monospace" }}>{n}</div>
+                            <div style={{ fontSize:7,color:G.muted,letterSpacing:1,marginTop:2 }}>{l}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ fontSize:9,color:G.muted,letterSpacing:1,padding:"8px",background:`${G.green}05`,borderRadius:3,border:`1px solid ${G.border}`,marginBottom:10 }}>
+                        💬 En Claude Code escribe: <span style={{ color:G.green }}>"Analiza los mercados"</span> o <span style={{ color:G.green }}>"Run tododeia"</span>
+                      </div>
+                      <a href="http://localhost:3420" target="_blank" rel="noreferrer"
+                        style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"10px",background:`${G.cyan}15`,border:`1px solid ${G.cyan}50`,borderRadius:4,textDecoration:"none",cursor:"pointer",marginBottom:4 }}>
+                        <span style={{ fontSize:14,color:G.cyan }}>◎</span>
+                        <span style={{ fontSize:10,color:G.cyan,letterSpacing:2,fontWeight:700 }}>VER REPORTE MAIA COMPLETO</span>
+                        <span style={{ fontSize:9,color:G.muted }}>localhost:3420 ↗</span>
+                      </a>
+                      <div style={{ fontSize:8,color:G.border,letterSpacing:1,textAlign:"center" }}>
+                        ⚠ Análisis educativo — no constituye asesoría financiera · by @soyenriquerocha
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ── TAB: IMÁGENES (GEMINI NANO-BANANA) ── */}
+          {tab==="imagen"&&(()=>{
+            const GP = "#A78BFA";
+            const EXAMPLES = [
+              MEIGEN_PROMPTS[0].p,
+              MEIGEN_PROMPTS[1].p,
+              MEIGEN_PROMPTS[7].p,
+              MEIGEN_PROMPTS[3].p,
+            ];
+            return (
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 420px", gap:14, height:"calc(100vh - 195px)" }}>
+
+                {/* ── Panel principal: chat + imagen ── */}
+                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+
+                  {/* Historial del chat */}
+                  <div ref={imgChatEl} style={{ flex:1, overflowY:"auto", display:"flex", flexDirection:"column", gap:14, background:G.panel, border:`1px solid ${G.border}`, borderRadius:4, padding:14, minHeight:0 }}>
+                    {imgHistory.length===0 && (
+                      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:16, opacity:.6 }}>
+                        <div style={{ fontSize:48, filter:`drop-shadow(0 0 20px ${GP})` }}>✦</div>
+                        <div style={{ fontSize:12, color:GP, letterSpacing:3, textAlign:"center" }}>NANO-BANANA LISTO</div>
+                        <div style={{ fontSize:10, color:G.muted, textAlign:"center", maxWidth:360, lineHeight:1.8 }}>
+                          Describe lo que quieres generar. Puedo crear imágenes, editarlas en conversación multi-turno y aplicar estilos complejos.
+                        </div>
+                      </div>
+                    )}
+                    {imgHistory.map((m,i)=>(
+                      <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", flexDirection:m.role==="user"?"row-reverse":"row" }}>
+                        <div style={{ width:30, height:30, borderRadius:4, flexShrink:0, border:`1px solid ${m.role==="model"?GP:G.dim}`, display:"flex", alignItems:"center", justifyContent:"center", background:m.role==="model"?`${GP}15`:`${G.dim}30`, fontSize:14, color:m.role==="model"?GP:G.muted }}>
+                          {m.role==="model"?"✦":"J"}
+                        </div>
+                        <div style={{ maxWidth:"75%", display:"flex", flexDirection:"column", gap:8 }}>
+                          {m.role==="model"&&<div style={{ fontSize:9, color:GP, letterSpacing:2 }}>NANO-BANANA · GEMINI</div>}
+                          {m.text&&<div style={{ padding:"10px 13px", borderRadius:4, background:m.role==="model"?`${GP}08`:`${G.dim}20`, border:`1px solid ${m.role==="model"?GP+"25":G.dim}`, fontSize:12, color:G.text, lineHeight:1.7 }}>{m.text}</div>}
+                          {m.image&&(
+                            <div style={{ position:"relative", borderRadius:6, overflow:"hidden", border:`1px solid ${GP}40`, boxShadow:`0 0 20px ${GP}20` }}>
+                              <img src={`data:image/png;base64,${m.image}`} style={{ width:"100%", display:"block", borderRadius:4 }} alt="Imagen generada" />
+                              <a href={`data:image/png;base64,${m.image}`} download="ghost-imagen.png"
+                                style={{ position:"absolute", bottom:8, right:8, padding:"5px 10px", background:`${GP}cc`, borderRadius:3, fontSize:9, color:"#fff", textDecoration:"none", letterSpacing:1 }}>
+                                ↓ DESCARGAR
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {imgBusy&&(
+                      <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                        <div style={{ width:30, height:30, borderRadius:4, border:`1px solid ${GP}`, display:"flex", alignItems:"center", justifyContent:"center", background:`${GP}15`, fontSize:14, color:GP }}>✦</div>
+                        <div style={{ padding:"10px 14px", borderRadius:4, background:`${GP}08`, border:`1px solid ${GP}25` }}>
+                          <div style={{ fontSize:9, color:GP, letterSpacing:2, marginBottom:6 }}>GENERANDO IMAGEN...</div>
+                          <div style={{ display:"flex", gap:5 }}>
+                            {[0,1,2].map(i=><div key={i} style={{ width:6, height:6, borderRadius:"50%", background:GP, animation:`pulse 1s ${i*.2}s infinite` }}/>)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {imgError&&<div style={{ padding:"8px 12px", background:`${G.red}12`, border:`1px solid ${G.red}40`, borderRadius:4, fontSize:11, color:G.red }}>⚠ {imgError}</div>}
+                  </div>
+
+                  {/* Input */}
+                  <div style={{ background:G.panel, border:`1px solid ${GP}40`, borderRadius:4, padding:"12px 14px" }}>
+                    <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                      <span style={{ color:GP, fontSize:14, flexShrink:0 }}>✦</span>
+                      <input
+                        value={imgPrompt}
+                        onChange={e=>setImgPrompt(e.target.value)}
+                        onKeyDown={e=>{ if(e.key==="Enter"&&!imgBusy&&imgPrompt.trim()&&geminiKey) generateImage(); }}
+                        placeholder={!geminiKey?"Configura tu API key →":"Describe la imagen que quieres generar..."}
+                        disabled={imgBusy||!geminiKey}
+                        style={{ flex:1, background:"transparent", border:"none", color:imgBusy||!geminiKey?G.muted:GP, fontSize:12, caretColor:GP }}
+                      />
+                      <button onClick={generateImage} disabled={imgBusy||!imgPrompt.trim()||!geminiKey}
+                        style={{ padding:"7px 16px", background:imgBusy||!imgPrompt.trim()||!geminiKey?G.green3:GP, border:"none", borderRadius:3, color:"#000", fontSize:10, fontWeight:700, cursor:imgBusy||!imgPrompt.trim()||!geminiKey?"not-allowed":"pointer", letterSpacing:2, opacity:imgBusy?.5:1, transition:"all .2s" }}>
+                        {imgBusy?"...":"GENERAR"}
+                      </button>
+                      <button onClick={resetImgChat} title="Nueva sesión"
+                        style={{ padding:"7px 10px", background:"transparent", border:`1px solid ${G.muted}40`, borderRadius:3, color:G.muted, fontSize:13, cursor:"pointer" }}>↺</button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Panel lateral: config + ejemplos + última imagen grande ── */}
+                <div style={{ display:"flex", flexDirection:"column", gap:12, overflow:"hidden" }}>
+
+                  {/* API Key + Guía de setup */}
+                  <Panel title={geminiKey?"GEMINI · CONECTADO":"CONFIGURACIÓN — NANO-BANANA"} icon="✦" accent={GP}>
+                    {geminiKey ? (
+                      <div>
+                        {/* Estado conectado */}
+                        <div style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 10px", background:`${GP}10`, border:`1px solid ${GP}30`, borderRadius:4, marginBottom:10 }}>
+                          <span style={{ width:8, height:8, borderRadius:"50%", background:GP, display:"inline-block", boxShadow:`0 0 8px ${GP}`, animation:"pulse 1.5s infinite", flexShrink:0 }}/>
+                          <div>
+                            <div style={{ fontSize:10, color:GP, letterSpacing:1 }}>NANO-BANANA ACTIVO</div>
+                            <div style={{ fontSize:8, color:G.muted }}>Key: AIza...{geminiKey.slice(-6)}</div>
+                          </div>
+                        </div>
+                        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                          {[
+                            ["◉","Generación de imágenes",true],
+                            ["◉","Edición multi-turno",true],
+                            ["◉","Gemini 2.0 Flash",true],
+                          ].map(([ic,label,ok])=>(
+                            <div key={label} style={{ display:"flex", alignItems:"center", gap:6, fontSize:9, color:ok?GP:G.muted }}>
+                              <span style={{ fontSize:8 }}>{ic}</span>{label}
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ marginTop:12 }}>
+                          <GBtn color={G.red} small onClick={()=>{ setGeminiKey(""); setGeminiKeyInput(""); resetImgChat(); }}>✕ DESCONECTAR</GBtn>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+
+                        {/* Pasos */}
+                        {[
+                          { n:"01", title:"Abre Google AI Studio", desc:"Ve a aistudio.google.com/apikey", link:"https://aistudio.google.com/apikey", tag:"ABRIR →" },
+                          { n:"02", title:"Inicia sesión", desc:"Con tu cuenta de Google" },
+                          { n:"03", title:"Crea la API key", desc:'Clic en "Create API key" → "in new project"' },
+                          { n:"04", title:"Copia la key", desc:'Empieza con "AIzaSy..." (39 caracteres)' },
+                          { n:"05", title:"Pégala aquí abajo", desc:"Presiona CONECTAR y listo 🎨" },
+                        ].map(s=>(
+                          <div key={s.n} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                            <div style={{ width:22, height:22, borderRadius:3, background:`${GP}20`, border:`1px solid ${GP}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:8, color:GP, fontWeight:700, flexShrink:0, letterSpacing:0 }}>
+                              {s.n}
+                            </div>
+                            <div style={{ flex:1 }}>
+                              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
+                                <span style={{ fontSize:10, color:G.text, fontWeight:700 }}>{s.title}</span>
+                                {s.link && (
+                                  <a href={s.link} target="_blank" rel="noreferrer"
+                                    style={{ fontSize:8, color:GP, background:`${GP}15`, border:`1px solid ${GP}40`, borderRadius:2, padding:"1px 6px", textDecoration:"none", letterSpacing:1 }}>
+                                    {s.tag}
+                                  </a>
+                                )}
+                              </div>
+                              <div style={{ fontSize:9, color:G.muted, lineHeight:1.5 }}>{s.desc}</div>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Separador */}
+                        <div style={{ height:1, background:`${GP}20`, margin:"2px 0" }}/>
+
+                        {/* Input key */}
+                        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                          <div style={{ fontSize:8, color:GP, letterSpacing:2 }}>PASO 05 — PEGA TU KEY</div>
+                          <input
+                            value={geminiKeyInput}
+                            onChange={e=>setGeminiKeyInput(e.target.value)}
+                            onKeyDown={e=>{ if(e.key==="Enter"&&geminiKeyInput.startsWith("AIza")) setGeminiKey(geminiKeyInput.trim()); }}
+                            placeholder="AIzaSy..."
+                            style={{ background:`${GP}08`, border:`1px solid ${geminiKeyInput.startsWith("AIza")?GP:GP+"30"}`, borderRadius:3, padding:"8px 10px", color:GP, fontSize:11, fontFamily:"monospace", letterSpacing:1, transition:"border .2s" }}
+                          />
+                          {geminiKeyInput && !geminiKeyInput.startsWith("AIza") && (
+                            <div style={{ fontSize:8, color:G.red, letterSpacing:1 }}>⚠ La key debe empezar con "AIza"</div>
+                          )}
+                          <button onClick={()=>geminiKeyInput.startsWith("AIza")&&setGeminiKey(geminiKeyInput.trim())}
+                            disabled={!geminiKeyInput.startsWith("AIza")}
+                            style={{ padding:"9px", background:geminiKeyInput.startsWith("AIza")?GP:`${GP}30`, border:"none", borderRadius:3, color:"#000", fontSize:10, fontWeight:700, cursor:geminiKeyInput.startsWith("AIza")?"pointer":"not-allowed", letterSpacing:2, transition:"all .2s" }}>
+                            ✦ CONECTAR CON GEMINI
+                          </button>
+                        </div>
+
+                        {/* Nota de seguridad */}
+                        <div style={{ fontSize:8, color:G.border, lineHeight:1.6, padding:"6px 8px", background:`${G.green}04`, borderRadius:3, border:`1px solid ${G.border}` }}>
+                          🔒 La key se guarda solo en tu navegador. Nunca la compartas en chats ni código.
+                        </div>
+
+                      </div>
+                    )}
+                  </Panel>
+
+                  {/* Imagen actual grande */}
+                  {imgResult
+                    ? (
+                      <Panel title="ÚLTIMA IMAGEN" icon="◈" accent={GP} style={{ flex:1, overflow:"hidden" }}>
+                        <div style={{ position:"relative", borderRadius:4, overflow:"hidden" }}>
+                          <img src={`data:image/png;base64,${imgResult}`} style={{ width:"100%", display:"block", borderRadius:4 }} alt="Resultado" />
+                          <div style={{ display:"flex", gap:8, marginTop:8 }}>
+                            <a href={`data:image/png;base64,${imgResult}`} download="ghost-imagen.png"
+                              style={{ flex:1, padding:"7px", background:`${GP}20`, border:`1px solid ${GP}50`, borderRadius:3, fontSize:9, color:GP, textDecoration:"none", textAlign:"center", letterSpacing:2 }}>
+                              ↓ DESCARGAR
+                            </a>
+                            <GBtn color={GP} small onClick={()=>{ setImgPrompt("Edita la imagen: "); }}>✏ EDITAR</GBtn>
+                          </div>
+                        </div>
+                      </Panel>
+                    )
+                    : (
+                      /* Prompts de ejemplo */
+                      <Panel title="EJEMPLOS RÁPIDOS" icon="◈" accent={GP}>
+                        <div style={{ fontSize:8, color:G.muted, letterSpacing:1, marginBottom:8 }}>
+                          Prompts GHOST × UFC — toca para cargar
+                        </div>
+                        <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+                          {[MEIGEN_PROMPTS[0],MEIGEN_PROMPTS[1],MEIGEN_PROMPTS[7],MEIGEN_PROMPTS[3]].map((pm,i)=>(
+                            <div key={i} onClick={()=>{ if(geminiKey){ setImgPrompt(pm.p); } }}
+                              style={{ padding:"9px 11px", border:`1px solid ${GP}25`, borderRadius:3, cursor:geminiKey?"pointer":"default", background:"transparent", transition:"all .15s", display:"flex", alignItems:"center", gap:8 }}
+                              onMouseEnter={e=>{ if(geminiKey){ e.currentTarget.style.background=`${GP}10`; e.currentTarget.style.borderColor=`${GP}60`; }}}
+                              onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; e.currentTarget.style.borderColor=`${GP}25`; }}>
+                              <span style={{ fontSize:16 }}>{pm.icon}</span>
+                              <div>
+                                <div style={{ fontSize:9, color:GP, fontWeight:700, letterSpacing:1 }}>{pm.label}</div>
+                                <div style={{ fontSize:8, color:G.muted }}>{pm.cat}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ marginTop:10, padding:"8px", background:`${GP}06`, borderRadius:3, border:`1px solid ${GP}20` }}>
+                          <div style={{ fontSize:8, color:GP, letterSpacing:2, marginBottom:4 }}>MULTI-TURNO</div>
+                          <div style={{ fontSize:9, color:G.muted, lineHeight:1.7 }}>
+                            Después de generar una imagen puedes pedirme que la edite: "Hazla más oscura", "Agrega lluvia", "Cambia el color del traje"...
+                          </div>
+                        </div>
+                      </Panel>
+                    )
+                  }
+
+                  {/* ── REMOVE.BG ── */}
+                  <Panel title="QUITAR FONDO — REMOVE.BG" icon="✂" accent={RBG_COLOR}>
+                    <input ref={rbgFileRef} type="file" accept="image/*" onChange={rbgFromFile} style={{ display:"none" }}/>
+
+                    {!rbgKey ? (
+                      /* Setup key */
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        <div style={{ fontSize:9, color:G.muted, lineHeight:1.6 }}>
+                          Elimina el fondo de cualquier imagen. API key gratuita en <span style={{ color:RBG_COLOR }}>remove.bg/api</span>
+                        </div>
+                        <input
+                          value={rbgKeyInput}
+                          onChange={e=>setRbgKeyInput(e.target.value)}
+                          onKeyDown={e=>{ if(e.key==="Enter"&&rbgKeyInput.trim()) setRbgKey(rbgKeyInput.trim()); }}
+                          placeholder="tu-api-key-remove-bg"
+                          style={{ background:`${RBG_COLOR}08`, border:`1px solid ${RBG_COLOR}30`, borderRadius:3, padding:"7px 10px", color:RBG_COLOR, fontSize:11, fontFamily:"monospace" }}
+                        />
+                        <button onClick={()=>rbgKeyInput.trim()&&setRbgKey(rbgKeyInput.trim())}
+                          disabled={!rbgKeyInput.trim()}
+                          style={{ padding:"8px", background:rbgKeyInput.trim()?RBG_COLOR:`${RBG_COLOR}30`, border:"none", borderRadius:3, color:"#000", fontSize:10, fontWeight:700, cursor:rbgKeyInput.trim()?"pointer":"not-allowed", letterSpacing:2 }}>
+                          ✂ CONECTAR REMOVE.BG
+                        </button>
+                      </div>
+                    ) : (
+                      /* Herramientas activas */
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
+                          <span style={{ width:6, height:6, borderRadius:"50%", background:RBG_COLOR, display:"inline-block", animation:"pulse 1.5s infinite" }}/>
+                          <span style={{ fontSize:9, color:RBG_COLOR, letterSpacing:1 }}>CONECTADO</span>
+                          <div style={{ flex:1 }}/>
+                          <button onClick={()=>{ setRbgKey(""); setRbgKeyInput(""); setRbgResult(null); }}
+                            style={{ background:"none", border:"none", color:G.muted, cursor:"pointer", fontSize:10 }}>✕</button>
+                        </div>
+
+                        {/* Botones de acción */}
+                        <div style={{ display:"flex", gap:6 }}>
+                          <button onClick={()=>rbgFileRef.current?.click()} disabled={rbgBusy}
+                            style={{ flex:1, padding:"8px 6px", background:`${RBG_COLOR}15`, border:`1px solid ${RBG_COLOR}50`, borderRadius:3, color:RBG_COLOR, fontSize:9, letterSpacing:1, cursor:"pointer", fontFamily:"monospace" }}>
+                            📁 SUBIR FOTO
+                          </button>
+                          {imgResult && (
+                            <button onClick={rbgFromGenerated} disabled={rbgBusy}
+                              style={{ flex:1, padding:"8px 6px", background:`${GP}15`, border:`1px solid ${GP}50`, borderRadius:3, color:GP, fontSize:9, letterSpacing:1, cursor:"pointer", fontFamily:"monospace" }}>
+                              ✦ USA GENERADA
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Estado / resultado */}
+                        {rbgBusy && (
+                          <div style={{ display:"flex", alignItems:"center", gap:8, padding:"8px", background:`${RBG_COLOR}08`, borderRadius:3, border:`1px solid ${RBG_COLOR}25` }}>
+                            <div style={{ display:"flex", gap:4 }}>
+                              {[0,1,2].map(i=><div key={i} style={{ width:5, height:5, borderRadius:"50%", background:RBG_COLOR, animation:`pulse 1s ${i*.2}s infinite` }}/>)}
+                            </div>
+                            <span style={{ fontSize:9, color:RBG_COLOR }}>PROCESANDO...</span>
+                          </div>
+                        )}
+                        {rbgError && (
+                          <div style={{ fontSize:9, color:G.red, padding:"6px 8px", background:`${G.red}10`, borderRadius:3 }}>⚠ {rbgError}</div>
+                        )}
+                        {rbgResult && (
+                          <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                            <div style={{ borderRadius:4, overflow:"hidden", border:`1px solid ${RBG_COLOR}40`, background:"repeating-conic-gradient(#1a1a1a 0% 25%, #222 0% 50%) 0 0 / 12px 12px" }}>
+                              <img src={rbgResult} style={{ width:"100%", display:"block" }} alt="Sin fondo"/>
+                            </div>
+                            <a href={rbgResult} download="sin-fondo.png"
+                              style={{ display:"block", padding:"7px", background:`${RBG_COLOR}20`, border:`1px solid ${RBG_COLOR}50`, borderRadius:3, fontSize:9, color:RBG_COLOR, textDecoration:"none", textAlign:"center", letterSpacing:2 }}>
+                              ↓ DESCARGAR PNG
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Panel>
+
+                  {/* ── GHOST × MEIGEN — PROMPTS PERSONALES ── */}
+                  {(()=>{
+                    const MG = "#FFD700";
+                    const cats = ["TODOS", ...Array.from(new Set(MEIGEN_PROMPTS.map(p=>p.cat)))];
+                    const filtered = meigenCat==="TODOS" ? MEIGEN_PROMPTS : MEIGEN_PROMPTS.filter(p=>p.cat===meigenCat);
+                    return (
+                      <Panel title="GHOST × MEIGEN — MIS PROMPTS" icon="⚡" accent={MG}>
+                        {/* Filtro de categorías */}
+                        <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginBottom:10 }}>
+                          {cats.map(c=>(
+                            <button key={c} onClick={()=>setMeigenCat(c)}
+                              style={{ padding:"3px 8px", background:meigenCat===c?`${MG}25`:"transparent", border:`1px solid ${meigenCat===c?MG:MG+"30"}`, borderRadius:3, color:meigenCat===c?MG:G.muted, fontSize:8, cursor:"pointer", letterSpacing:1, fontFamily:"monospace", transition:"all .15s" }}>
+                              {c}
+                            </button>
+                          ))}
+                        </div>
+                        {/* Lista de prompts */}
+                        <div style={{ display:"flex", flexDirection:"column", gap:6, maxHeight:260, overflowY:"auto" }}>
+                          {filtered.map((pm,i)=>(
+                            <div key={i}
+                              onClick={()=>{ setImgPrompt(pm.p); }}
+                              title={pm.p}
+                              style={{ padding:"8px 10px", border:`1px solid ${MG}20`, borderRadius:3, cursor:"pointer", background:"transparent", transition:"all .15s" }}
+                              onMouseEnter={e=>{ e.currentTarget.style.background=`${MG}0D`; e.currentTarget.style.borderColor=`${MG}60`; }}
+                              onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; e.currentTarget.style.borderColor=`${MG}20`; }}>
+                              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:3 }}>
+                                <span style={{ fontSize:13 }}>{pm.icon}</span>
+                                <span style={{ fontSize:9, color:MG, fontWeight:700, letterSpacing:1, flex:1 }}>{pm.label}</span>
+                                <span style={{ fontSize:7, color:G.muted, background:`${MG}12`, padding:"1px 5px", borderRadius:2, letterSpacing:1 }}>{pm.cat}</span>
+                              </div>
+                              <div style={{ fontSize:8, color:G.muted, lineHeight:1.5, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                                {pm.p.slice(0, 80)}...
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Badge */}
+                        <div style={{ marginTop:8, padding:"5px 8px", background:`${MG}06`, borderRadius:3, border:`1px solid ${MG}20`, fontSize:7, color:G.muted, letterSpacing:1 }}>
+                          ⚡ Toca un prompt → se carga directo al generador · Basado en meigen.ai
+                        </div>
+                      </Panel>
+                    );
+                  })()}
+
+                  {/* ── UI/UX PRO MAX — ESTILOS DE DISEÑO ── */}
+                  <Panel title="ESTILOS DE DISEÑO — UI/UX PRO" icon="🎨" accent="#E879F9">
+                    {/* Buscador */}
+                    <input
+                      value={uiSearch}
+                      onChange={e=>setUiSearch(e.target.value)}
+                      placeholder="Buscar estilo: cyberpunk, glass, retro..."
+                      style={{ width:"100%", padding:"7px 10px", background:"#E879F908", border:"1px solid #E879F930", borderRadius:3, color:"#E879F9", fontSize:10, fontFamily:"monospace", marginBottom:8, outline:"none", boxSizing:"border-box" }}
+                    />
+                    <div style={{ fontSize:8, color:G.muted, letterSpacing:1, marginBottom:8 }}>
+                      Toca un estilo → se agrega al prompt de imagen
+                    </div>
+                    {/* Lista de estilos */}
+                    <div style={{ display:"flex", flexDirection:"column", gap:5, maxHeight:220, overflowY:"auto" }}>
+                      {UIPRO_STYLES
+                        .filter(s => !uiSearch.trim() || s.n.toLowerCase().includes(uiSearch.toLowerCase()) || s.p.toLowerCase().includes(uiSearch.toLowerCase()))
+                        .map((s,i)=>(
+                          <div key={i}
+                            onClick={()=>{ setImgPrompt(prev => (prev?prev+", ":"")+s.p); setUiSearch(""); }}
+                            title={s.p}
+                            style={{ padding:"7px 10px", border:"1px solid #E879F920", borderRadius:3, cursor:"pointer", background:"transparent", transition:"all .15s", display:"flex", flexDirection:"column", gap:2 }}
+                            onMouseEnter={e=>{ e.currentTarget.style.background="#E879F910"; e.currentTarget.style.borderColor="#E879F960"; }}
+                            onMouseLeave={e=>{ e.currentTarget.style.background="transparent"; e.currentTarget.style.borderColor="#E879F920"; }}>
+                            <span style={{ fontSize:10, color:"#E879F9", fontWeight:700, letterSpacing:1 }}>🎨 {s.n}</span>
+                            <span style={{ fontSize:8, color:G.muted, lineHeight:1.5, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{s.p.slice(0,70)}...</span>
+                          </div>
+                        ))
+                      }
+                    </div>
+                    {/* Badge UI/UX Pro */}
+                    <div style={{ marginTop:8, padding:"6px 8px", background:"#E879F908", borderRadius:3, border:"1px solid #E879F920", display:"flex", alignItems:"center", gap:6 }}>
+                      <span style={{ fontSize:12 }}>✦</span>
+                      <div>
+                        <div style={{ fontSize:8, color:"#E879F9", letterSpacing:2 }}>UI/UX PRO MAX v2.6.3</div>
+                        <div style={{ fontSize:7, color:G.muted }}>67 estilos · 96 paletas · 57 tipografías · by nextlevelbuilder</div>
+                      </div>
+                    </div>
+                  </Panel>
+
+                  {/* Badge Nano-Banana */}
+                  <div style={{ padding:"10px 14px", background:G.panel, border:`1px solid ${GP}25`, borderRadius:4, display:"flex", alignItems:"center", gap:10 }}>
+                    <div style={{ fontSize:22 }}>🍌</div>
+                    <div>
+                      <div style={{ fontSize:9, color:GP, letterSpacing:2 }}>NANO-BANANA 2</div>
+                      <div style={{ fontSize:8, color:G.muted }}>Gemini · Google AI · Generación de imágenes</div>
                     </div>
                   </div>
                 </div>
